@@ -14,162 +14,85 @@ CR		equ		0dh
 LF		equ		0ah
 
 	.data
+
 ContadorBuffer  dw 	0
-PalavraStart    db	"START", 0		; Palavra que indica o inicio da leitura
-PalavraStop     db	"STOP", 0		; Palavra que indica o fim da leitura
-FileNameSrc		db		"IN.txt", 0	; Nome do arquivo a ser lido
-FileNameDst		db		"OUT.txt", 0		; Nome do arquivo a ser escrito
+PalavraStart    db		"START", 0		; Palavra que indica o inicio da leitura
+PalavraStop     db		"STOP", 0		; Palavra que indica o fim da leitura
+FileNameSrc		db		"IN.txt", 0		; Nome do arquivo a ser lido
+FileNameDst		db		"OUT.txt", 0	; Nome do arquivo a ser escrito
 FileHandleSrc	dw		0				; Handler do arquivo origem
 FileHandleDst	dw		0				; Handler do arquivo destino
-FileBuffer		db		2000 dup (?)		; Buffer de leitura/escrita do arquivo
-NewBuffer		db		2000 dup (?)		; Buffer de leitura/escrita do arquivo
+FileBuffer		db		2000 dup (?)	; Buffer de leitura/escrita do arquivo
+NewBuffer		db		2000 dup (?)	; Buffer de leitura/escrita do arquivo
 
 MsgPedeArquivoSrc	db	"Nome do arquivo origem: ", 0
 MsgPedeArquivoDst	db	"Nome do arquivo destino: ", 0
-MsgErroOpenFile		db	"Erro na abertura do arquivo.", CR, LF, 0
-MsgErroCreateFile	db	"Erro na criacao do arquivo.", CR, LF, 0
-MsgErroReadFile		db	"Erro na leitura do arquivo.", CR, LF, 0
-MsgErroWriteFile	db	"Erro na escrita do arquivo.", CR, LF, 0
-MsgCRLF				db	CR, LF, 0
+MsgErroOpenFile		db	"Erro: Nao foi possivel fazer a abertura do arquivo.", CR, LF, 0
+MsgErroCreateFile	db	"Erro: Nao foi possivel fazer a criacao do arquivo.", CR, LF, 0
+MsgErroReadFile		db	"Erro: Nao foi possível fazer a leitura do arquivo.", CR, LF, 0
+MsgErroSemStart		db	"Erro: Nao foi encontrado a palavra 'START' no arquivo.", CR, LF, 0
+MsgErroWriteFile	db	"Erro: Nao foi possivel fazer a escrita do arquivo.", CR, LF, 0
+; Abrir o arquivo de origem
+lea		dx,FileNameSrc		; Carrega o endereço do nome do arquivo de origem em DX
+call	fopen				; Chama a função fopen para abrir o arquivo
+mov		FileHandleSrc,bx	; Move o handle do arquivo para BX
+jnc		Continua2			; Se não houver erro, pula para Continua2
+lea		bx, MsgErroOpenFile	; Carrega a mensagem de erro de abertura do arquivo em BX
+call	printf_s			; Chama a função printf_s para imprimir a mensagem de erro
+.exit	1						; Sai do programa com código de erro 1
 
-MAXSTRING	equ		200
-String	db		MAXSTRING dup (?)		; Usado na funcao gets
-
-	.code
-	.startup
-
-	;GetFileNameSrc();	// Pega o nome do arquivo de origem -> FileNameSrc
-	;call	GetFileNameSrc
-
-	;if (fopen(FileNameSrc)) {
-	;	printf("Erro na abertura do arquivo.\r\n")
-	;	exit(1)
-	;}
-	;FileHandleSrc = BX
-	lea		dx,FileNameSrc
-	call	fopen
-	mov		FileHandleSrc,bx
-	jnc		Continua2
-	lea		bx, MsgErroOpenFile
-	call	printf_s
-	.exit	1
 Continua1:
+; Criar o arquivo de destino
+lea		dx,FileNameDst		; Carrega o endereço do nome do arquivo de destino em DX
+call	fcreate				; Chama a função fcreate para criar o arquivo
+mov		FileHandleDst,bx	; Move o handle do arquivo para BX
+jnc		Continua2			; Se não houver erro, pula para Continua2
+mov		bx,FileHandleSrc	; Move o handle do arquivo de origem para BX
+call	fclose				; Chama a função fclose para fechar o arquivo de origem
+lea		bx, MsgErroCreateFile	; Carrega a mensagem de erro de criação do arquivo em BX
+call	printf_s			; Chama a função printf_s para imprimir a mensagem de erro
+.exit	1						; Sai do programa com código de erro 1
 
-	;GetFileNameDst();	// Pega o nome do arquivo de origem -> FileNameDst
-	;call	GetFileNameDst
-	
-	;if (fcreate(FileNameDst)) {
-	;	fclose(FileHandleSrc);
-	;	printf("Erro na criacao do arquivo.\r\n")
-	;	exit(1)
-	;}
-	;FileHandleDst = BX
-	lea		dx,FileNameDst
-	call	fcreate
-	mov		FileHandleDst,bx
-	jnc		Continua2
-	mov		bx,FileHandleSrc
-	call	fclose
-	lea		bx, MsgErroCreateFile
-	call	printf_s
-	.exit	1
 Continua2:
+; Ler caracteres do arquivo de origem
+mov		bx,FileHandleSrc	; Move o handle do arquivo de origem para BX
+call	getChar				; Chama a função getChar para ler um caractere do arquivo
+jnc		Continua3			; Se não houver erro, pula para Continua3
+lea		bx, MsgErroReadFile	; Carrega a mensagem de erro de leitura do arquivo em BX
+call	printf_s			; Chama a função printf_s para imprimir a mensagem de erro
+mov		bx,FileHandleSrc	; Move o handle do arquivo de origem para BX
+call	fclose				; Chama a função fclose para fechar o arquivo de origem
+mov		bx,FileHandleDst	; Move o handle do arquivo de destino para BX
+call	fclose				; Chama a função fclose para fechar o arquivo de destino
+.exit	1						; Sai do programa com código de erro 1
 
-	;do {
-	;	if ( (CF,DL,AX = getChar(FileHandleSrc)) ) {
-	;		printf("");
-	;		fclose(FileHandleSrc)
-	;		fclose(FileHandleDst)
-	;		exit(1)
-	;	}
-	mov		bx,FileHandleSrc    
-	call	getChar
-	jnc		Continua3
-	lea		bx, MsgErroReadFile
-	call	printf_s
-	mov		bx,FileHandleSrc
-	call	fclose
-	mov		bx,FileHandleDst
-	call	fclose
-	.exit	1
 Continua3:
+; Verificar se chegou ao final do arquivo
+cmp		ax,0				; Compara o valor de AX com 0
+jz		TerminouArquivo		; Se for igual a 0, pula para TerminouArquivo
+jmp 	Continua2			; Caso contrário, volta para Continua2
 
-	;	if (AX==0) break;
-	cmp		ax,0
-	jz		TerminouArquivo
-	jmp 	Continua2
 Continua4:
+; Escrever o caractere no arquivo de destino
+mov		bx,FileHandleDst	; Move o handle do arquivo de destino para BX
+call	setChar				; Chama a função setChar para escrever o caractere no arquivo
+jnc		Continua2			; Se não houver erro, pula para Continua2
 
-	;	if ( setChar(FileHandleDst, DL) == 0) continue;
-	mov		bx,FileHandleDst
-	call	setChar
-	jnc		Continua2
-	;jmp Continua2
-	;	printf ("Erro na escrita....;)")
-	;   fclose(FileHandleSrc)
-	;   fclose(FileHandleDst)
-	;   exit(1)
-	;lea		bx, MsgErroWriteFile
-	;call	printf_s
-	mov		bx,FileHandleSrc		; Fecha arquivo origem
-	call	fclose
-	mov		bx,FileHandleDst		; Fecha arquivo destino
-	call	fclose
-	.exit	1
+mov		bx,FileHandleSrc	; Move o handle do arquivo de origem para BX
+call	fclose				; Chama a função fclose para fechar o arquivo de origem
+mov		bx,FileHandleDst	; Move o handle do arquivo de destino para BX
+call	fclose				; Chama a função fclose para fechar o arquivo de destino
+.exit	1						; Sai do programa com código de erro 1
 	
-	;} while(1);
-		
 TerminouArquivo:
-	;fclose(FileHandleSrc)
-	;fclose(FileHandleDst)
-	;exit(0)
-	lea 	bx, FileBuffer
-	call    procuraStart
-	mov		bx,FileHandleSrc	; Fecha arquivo origem
-	call	fclose
-	mov		bx,FileHandleDst	; Fecha arquivo destino
-	call	fclose
-	.exit	0
+; Procurar pela palavra "START" no arquivo
+call    procuraStart		; Chama a função procuraStart para procurar pela palavra "START" no arquivo
+mov		bx,FileHandleSrc	; Move o handle do arquivo de origem para BX
+call	fclose				; Chama a função fclose para fechar o arquivo de origem
+mov		bx,FileHandleDst	; Move o handle do arquivo de destino para BX
+call	fclose				; Chama a função fclose para fechar o arquivo de destino
+.exit	0					; Sai do programa com código de sucesso 0
 
-		
-;--------------------------------------------------------------------
-;Funcao Pede o nome do arquivo de origem salva-o em FileNameSrc
-;--------------------------------------------------------------------
-GetFileNameSrc	proc	near
-	;printf("Nome do arquivo origem: ")
-	lea		bx, MsgPedeArquivoSrc
-	call	printf_s
-
-	;gets(FileNameSrc);
-	lea		bx, FileNameSrc
-	call	gets
-	
-	;printf("\r\n")
-	lea		bx, MsgCRLF
-	call	printf_s
-	
-	ret
-GetFileNameSrc	endp
-
-
-;--------------------------------------------------------------------
-;Funcao Pede o nome do arquivo de destino salva-o em FileNameDst
-;--------------------------------------------------------------------
-GetFileNameDst	proc	near
-	;printf("Nome do arquivo destino: ");
-	lea		bx, MsgPedeArquivoDst
-	call	printf_s
-	
-	;gets(FileNameDst);
-	lea		bx, FileNameDst
-	call	gets
-	
-	;printf("\r\n")
-	lea		bx, MsgCRLF
-	call	printf_s
-	
-	ret
-GetFileNameDst	endp
 
 ;--------------------------------------------------------------------
 ;Função	Abre o arquivo cujo nome está no string apontado por DX
@@ -218,17 +141,6 @@ fclose	endp
 ;		AX -> numero de caracteres lidos
 ;		CF -> "0" se leitura ok
 ;--------------------------------------------------------------------
-
-;getChar	proc	near
-;	mov		ah,3fh
-;	mov		cx,1
-;	lea		dx,[FileBuffer+ContadorBuffer]
-;	int		21h
-;	mov		dl,[FileBuffer+ContadorBuffer]
-;	inc 	ContadorBuffer
-;	ret
-;getChar	endp
-
 getChar proc near
     mov     cx, 1                  ; Number of bytes to read
     lea     si, FileBuffer         ; Load the base address of FileBuffer into SI
@@ -241,62 +153,62 @@ getChar proc near
     ret                            ; Return to the caller
 getChar endp
 
-procuraStart    proc near
-
-
+;--------------------------------------------------------------------
+;Função que procura a palavra "START" no arquivo
+;		
+;Sai:   
+;		NovoBuffer -> buffer com o conteudo do arquivo
+;--------------------------------------------------------------------
+criaNovoBuffer    proc near
 	lea bx, FileBuffer
-	call printf_s
 
-procuraStart_loop:
+criaNovoBuffer_loop:
 	mov 	dl, [bx]	; Carrega o primeiro caractere do buffer
-    
 	
-
 	cmp 	dl, 0		; Verifica se o buffer está vazio
-	je 		procuraStart_ret	; Se estiver, retorna
+	je 		criaNovoBuffer_ret	; Se estiver, retorna
 
-	cmp     dl, 'S'             ; Verifica se o caractere é 'S'
-	jne     procuraStart_end    ; Se não for, sai do loop
+	cmp     byte ptr dl, 'S'             ; Verifica se o caractere é 'S'
+	jne     criaNovoBuffer_end    ; Se não for, sai do loop
 
 	mov dl, [bx + 1]
 
 	cmp     byte ptr dl, 'T'  ; Verifica se o próximo caractere é 'T'
-	jne     procuraStart_end    ; Se não for, sai do loop
+	jne     criaNovoBuffer_end    ; Se não for, sai do loop
 
 	mov dl, [bx + 2]
 
 	cmp     byte ptr dl, 'A'; Verifica se o próximo caractere é 'A'
-	jne     procuraStart_end    ; Se não for, sai do loop
+	jne     criaNovoBuffer_end    ; Se não for, sai do loop
 
 	mov dl, [bx + 3]
 
 	cmp     byte ptr dl, 'R'; Verifica se o próximo caractere é 'R'
-	jne     procuraStart_end    ; Se não for, sai do loop
+	jne     criaNovoBuffer_end    ; Se não for, sai do loop
 
 	mov dl, [bx + 4]
 
 	cmp     byte ptr dl, 'T'; Verifica se o próximo caractere é 'T'
-	jne     procuraStart_end    ; Se não for, sai do loop
+	jne     criaNovoBuffer_end    ; Se não for, sai do loop
 
 	mov dl, [bx + 5]	; Adicione essa linha para verificar o próximo caractere
 
-	cmp     byte ptr dl, ' ';	; Verifica se o próximo caractere é um espaço em branco
-	jne     procuraStart_end    ; Se não for, sai do loop
+	cmp     byte ptr dl, 0 ; Verifica se o próximo caractere é nulo
+	jne     criaNovoBuffer_print   ; Imprime a mensagem
 
-	jmp     procuraStart_print   ; Imprime a mensagem
-
-
-procuraStart_end:
+criaNovoBuffer_end:
 	inc bx
-	jb      procuraStart_loop    ; Se não chegou, continua procurando
+	jmp criaNovoBuffer_loop
 
+criaNovoBuffer_ret:
+	cmp cx, 0
+	lea bx, MsgErroSemStart
+	call printf_s
+	.exit
 
-procuraStart_ret:
-	ret
-
-procuraStart_print:
-	lea     bx, PalavraStart
-	call    printf_s
+criaNovoBuffer_print:
+	lea bx, PalavraStart
+	call printf_s
 	ret
 
 procuraStart    endp
@@ -315,36 +227,6 @@ setChar	proc	near
 	int		21h
 	ret
 setChar	endp	
-
-;
-;--------------------------------------------------------------------
-;Funcao Le um string do teclado e coloca no buffer apontado por BX
-;		gets(char *s -> bx)
-;--------------------------------------------------------------------
-gets	proc	near
-	push	bx
-
-	mov		ah,0ah						; Lê uma linha do teclado
-	lea		dx,String
-	mov		byte ptr String, MAXSTRING-4	; 2 caracteres no inicio e um eventual CR LF no final
-	int		21h
-
-	lea		si,String+2					; Copia do buffer de teclado para o FileName
-	pop		di
-	mov		cl,String+1
-	mov		ch,0
-	mov		ax,ds						; Ajusta ES=DS para poder usar o MOVSB
-	mov		es,ax
-	rep 	movsb
-
-	mov		byte ptr es:[di],0			; Coloca marca de fim de string
-	ret
-gets	endp
-
-;====================================================================
-; A partir daqui, estão as funções já desenvolvidas
-;	1) printf_s
-;====================================================================
 	
 ;--------------------------------------------------------------------
 ;Função Escrever um string na tela
