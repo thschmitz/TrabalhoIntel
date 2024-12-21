@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 6.11		    12/21/24 17:57:08
+Microsoft (R) Macro Assembler Version 6.11		    12/21/24 18:13:41
 main.asm						     Page 1 - 1
 
 
@@ -96,14 +96,6 @@ main.asm						     Page 1 - 1
  0000					.code
 					.startup
 				
-					;GetFileNameSrc();	// Pega o nome do arquivo de origem -> FileNameSrc
-					;call	GetFileNameSrc
-				
-					;if (fopen(FileNameSrc)) {
-					;	printf("Erro na abertura do arquivo.\r\n")
-					;	exit(1)
-					;}
-					;FileHandleSrc = BX
  0017  8D 16 000D R			lea		dx,FileNameSrc
  001B  E8 008E				call	fopen
  001E  89 1E 001C R			mov		FileHandleSrc,bx
@@ -113,15 +105,6 @@ main.asm						     Page 1 - 1
 					.exit	1
  0030				Continua1:
 				
-					;GetFileNameDst();	// Pega o nome do arquivo de origem -> FileNameDst
-					;call	GetFileNameDst
-					
-					;if (fcreate(FileNameDst)) {
-					;	fclose(FileHandleSrc);
-					;	printf("Erro na criacao do arquivo.\r\n")
-					;	exit(1)
-					;}
-					;FileHandleDst = BX
  0030  8D 16 0014 R			lea		dx,FileNameDst
  0034  E8 007E				call	fcreate
  0037  89 1E 001E R			mov		FileHandleDst,bx
@@ -339,7 +322,7 @@ main.asm						     Page 1 - 1
 				
 				
 
-Microsoft (R) Macro Assembler Version 6.11		    12/21/24 17:57:08
+Microsoft (R) Macro Assembler Version 6.11		    12/21/24 18:13:41
 main.asm						     Symbols 2 - 1
 
 
