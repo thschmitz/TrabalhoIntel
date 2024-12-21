@@ -14,14 +14,15 @@ CR		equ		0dh
 LF		equ		0ah
 
 	.data
+ContadorBuffer  dw 	0
 PalavraStart    db	"START", 0		; Palavra que indica o inicio da leitura
 PalavraStop     db	"STOP", 0		; Palavra que indica o fim da leitura
 FileNameSrc		db		"IN.txt", 0	; Nome do arquivo a ser lido
 FileNameDst		db		"OUT.txt", 0		; Nome do arquivo a ser escrito
 FileHandleSrc	dw		0				; Handler do arquivo origem
 FileHandleDst	dw		0				; Handler do arquivo destino
-FileBuffer		db		10 dup (?)		; Buffer de leitura/escrita do arquivo
-NewBuffer		db		10 dup (?)		; Buffer de leitura/escrita do arquivo
+FileBuffer		db		2000 dup (?)		; Buffer de leitura/escrita do arquivo
+NewBuffer		db		2000 dup (?)		; Buffer de leitura/escrita do arquivo
 
 MsgPedeArquivoSrc	db	"Nome do arquivo origem: ", 0
 MsgPedeArquivoDst	db	"Nome do arquivo destino: ", 0
@@ -70,7 +71,7 @@ Continua1:
 	mov		bx,FileHandleSrc
 	call	fclose
 	lea		bx, MsgErroCreateFile
-	;call	printf_s
+	call	printf_s
 	.exit	1
 Continua2:
 
@@ -81,10 +82,7 @@ Continua2:
 	;		fclose(FileHandleDst)
 	;		exit(1)
 	;	}
-	mov		bx,FileHandleSrc
-
-
-    ;mov     FileBuffer, dx
+	mov		bx,FileHandleSrc    
 	call	getChar
 	jnc		Continua3
 	lea		bx, MsgErroReadFile
@@ -99,14 +97,14 @@ Continua3:
 	;	if (AX==0) break;
 	cmp		ax,0
 	jz		TerminouArquivo
-	
+	jmp 	Continua2
 Continua4:
 
 	;	if ( setChar(FileHandleDst, DL) == 0) continue;
 	mov		bx,FileHandleDst
 	call	setChar
 	jnc		Continua2
-
+	;jmp Continua2
 	;	printf ("Erro na escrita....;)")
 	;   fclose(FileHandleSrc)
 	;   fclose(FileHandleDst)
@@ -216,24 +214,43 @@ fclose	endp
 ;Função	Le um caractere do arquivo identificado pelo HANLDE BX
 ;		getChar(handle->BX)
 ;Entra: BX -> file handle
-;Sai:   dl -> caractere
+;Sai:   
 ;		AX -> numero de caracteres lidos
 ;		CF -> "0" se leitura ok
 ;--------------------------------------------------------------------
-getChar	proc	near
-	mov		ah,3fh
-	mov		cx,1
-	lea		dx,FileBuffer
-	int		21h
-	mov		dl,FileBuffer
-	ret
-getChar	endp
 
+;getChar	proc	near
+;	mov		ah,3fh
+;	mov		cx,1
+;	lea		dx,[FileBuffer+ContadorBuffer]
+;	int		21h
+;	mov		dl,[FileBuffer+ContadorBuffer]
+;	inc 	ContadorBuffer
+;	ret
+;getChar	endp
+
+getChar proc near
+    mov     cx, 1                  ; Number of bytes to read
+    lea     si, FileBuffer         ; Load the base address of FileBuffer into SI
+    mov     dx, si                 ; Copy base address to DX (used by DOS)
+    mov     ax, ContadorBuffer     ; Load FileCounter into AX
+    add     dx, ax                 ; Adjust DX to point to the current position
+    mov     ah, 3Fh                ; DOS function: Read from file
+    int     21h                    ; Call DOS interrupt
+    inc     ContadorBuffer         ; Increment the counter for the next read
+    ret                            ; Return to the caller
+getChar endp
 
 procuraStart    proc near
 
+
+	lea bx, FileBuffer
+	call printf_s
+
 procuraStart_loop:
 	mov 	dl, [bx]	; Carrega o primeiro caractere do buffer
+    
+	
 
 	cmp 	dl, 0		; Verifica se o buffer está vazio
 	je 		procuraStart_ret	; Se estiver, retorna
@@ -259,6 +276,11 @@ procuraStart_loop:
 	mov dl, [bx + 4]
 
 	cmp     byte ptr dl, 'T'; Verifica se o próximo caractere é 'T'
+	jne     procuraStart_end    ; Se não for, sai do loop
+
+	mov dl, [bx + 5]	; Adicione essa linha para verificar o próximo caractere
+
+	cmp     byte ptr dl, ' ';	; Verifica se o próximo caractere é um espaço em branco
 	jne     procuraStart_end    ; Se não for, sai do loop
 
 	jmp     procuraStart_print   ; Imprime a mensagem
