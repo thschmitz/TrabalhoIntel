@@ -3,9 +3,9 @@
 
 	.data
 
-BUFF_SIZE	equ 100 ; tam. máximo dos dados lidos no buffer
+BUFF_SIZE	equ 600 ; tam. máximo dos dados lidos no buffer
 
-NomeArq	db "arq.txt",0    ; nome arq. terminado com \0
+NomeArq	db "IN.txt",0    ; nome arq. terminado com \0
 BuffArq	db BUFF_SIZE dup(?)	; buffer para dados lidos do arquivo
 BytesLidos	dw ?	; guarda quantidade de bytes lidos
 HandleArq dw ?		; guarda handle do arquivo

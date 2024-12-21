@@ -1,0 +1,471 @@
+Microsoft (R) Macro Assembler Version 6.11		    12/21/24 13:53:52
+main.asm						     Page 1 - 1
+
+
+				
+				;
+				;====================================================================
+				;	- Escrever um programa para ler um arquivo texto e 
+				;		apresentá-lo na tela
+				;	- O usuário devem informar o nome do arquivo, 
+				;		assim que for apresentada a mensagem: Nome do arquivo: 
+				;====================================================================
+				;
+					.model		small
+					.stack
+						
+ = 000D				CR		equ		0dh
+ = 000A				LF		equ		0ah
+				
+ 0000					.data
+ 0000 53 54 41 52 54 00		PalavraStart    db	"START", 0		; Palavra que indica o inicio da leitura
+ 0006 53 54 4F 50 00		PalavraStop     db	"STOP", 0		; Palavra que indica o fim da leitura
+ 000B 49 4E 2E 74 78 74		FileNameSrc		db		"IN.txt", 0	; Nome do arquivo a ser lido
+       00
+ 0012 4F 55 54 2E 74 78		FileNameDst		db		"OUT.txt", 0		; Nome do arquivo a ser escrito
+       74 00
+ 001A 0000			FileHandleSrc	dw		0				; Handler do arquivo origem
+ 001C 0000			FileHandleDst	dw		0				; Handler do arquivo destino
+ 001E  000A [			FileBuffer		db		10 dup (?)		; Buffer de leitura/escrita do arquivo
+        00
+       ]
+ 0028  000A [			NewBuffer		db		10 dup (?)		; Buffer de leitura/escrita do arquivo
+        00
+       ]
+				
+ 0032 4E 6F 6D 65 20 64		MsgPedeArquivoSrc	db	"Nome do arquivo origem: ", 0
+       6F 20 61 72 71 75
+       69 76 6F 20 6F 72
+       69 67 65 6D 3A 20
+       00
+ 004B 4E 6F 6D 65 20 64		MsgPedeArquivoDst	db	"Nome do arquivo destino: ", 0
+       6F 20 61 72 71 75
+       69 76 6F 20 64 65
+       73 74 69 6E 6F 3A
+       20 00
+ 0065 45 72 72 6F 20 6E		MsgErroOpenFile		db	"Erro na abertura do arquivo.", CR, LF, 0
+       61 20 61 62 65 72
+       74 75 72 61 20 64
+       6F 20 61 72 71 75
+       69 76 6F 2E 0D 0A
+       00
+ 0084 45 72 72 6F 20 6E		MsgErroCreateFile	db	"Erro na criacao do arquivo.", CR, LF, 0
+       61 20 63 72 69 61
+       63 61 6F 20 64 6F
+       20 61 72 71 75 69
+       76 6F 2E 0D 0A 00
+ 00A2 45 72 72 6F 20 6E		MsgErroReadFile		db	"Erro na leitura do arquivo.", CR, LF, 0
+       61 20 6C 65 69 74
+       75 72 61 20 64 6F
+       20 61 72 71 75 69
+       76 6F 2E 0D 0A 00
+ 00C0 45 72 72 6F 20 6E		MsgErroWriteFile	db	"Erro na escrita do arquivo.", CR, LF, 0
+       61 20 65 73 63 72
+       69 74 61 20 64 6F
+       20 61 72 71 75 69
+       76 6F 2E 0D 0A 00
+ 00DE 0D 0A 00			MsgCRLF				db	CR, LF, 0
+				
+ = 00C8				MAXSTRING	equ		200
+ 00E1  00C8 [			String	db		MAXSTRING dup (?)		; Usado na funcao gets
+        00
+       ]
+				
+ 0000					.code
+					.startup
+				
+					;GetFileNameSrc();	// Pega o nome do arquivo de origem -> FileNameSrc
+					;call	GetFileNameSrc
+				
+					;if (fopen(FileNameSrc)) {
+					;	printf("Erro na abertura do arquivo.\r\n")
+					;	exit(1)
+					;}
+					;FileHandleSrc = BX
+ 0017  8D 16 000B R			lea		dx,FileNameSrc
+ 001B  E8 00B9				call	fopen
+ 001E  89 1E 001A R			mov		FileHandleSrc,bx
+ 0022  73 29				jnc		Continua2
+ 0024  8D 1E 0065 R			lea		bx, MsgErroOpenFile
+ 0028  E8 0142				call	printf_s
+					.exit	1
+ 0030				Continua1:
+				
+					;GetFileNameDst();	// Pega o nome do arquivo de origem -> FileNameDst
+					;call	GetFileNameDst
+					
+					;if (fcreate(FileNameDst)) {
+					;	fclose(FileHandleSrc);
+					;	printf("Erro na criacao do arquivo.\r\n")
+					;	exit(1)
+					;}
+					;FileHandleDst = BX
+ 0030  8D 16 0012 R			lea		dx,FileNameDst
+ 0034  E8 00A9				call	fcreate
+ 0037  89 1E 001C R			mov		FileHandleDst,bx
+ 003B  73 10				jnc		Continua2
+ 003D  8B 1E 001A R			mov		bx,FileHandleSrc
+ 0041  E8 00A6				call	fclose
+ 0044  8D 1E 0084 R			lea		bx, MsgErroCreateFile
+					;call	printf_s
+					.exit	1
+ 004D				Continua2:
+				
+					;do {
+					;	if ( (CF,DL,AX = getChar(FileHandleSrc)) ) {
+					;		printf("");
+					;		fclose(FileHandleSrc)
+					;		fclose(FileHandleDst)
+					;		exit(1)
+					;	}
+ 004D  8B 1E 001A R			mov		bx,FileHandleSrc
+				
+				
+				    ;mov     FileBuffer, dx
+ 0051  E8 009B				call	getChar
+ 0054  73 1A				jnc		Continua3
+ 0056  8D 1E 00A2 R			lea		bx, MsgErroReadFile
+ 005A  E8 0110				call	printf_s
+ 005D  8B 1E 001A R			mov		bx,FileHandleSrc
+ 0061  E8 0086				call	fclose
+ 0064  8B 1E 001C R			mov		bx,FileHandleDst
+ 0068  E8 007F				call	fclose
+					.exit	1
+ 0070				Continua3:
+				
+					;	if (AX==0) break;
+ 0070  83 F8 00				cmp		ax,0
+ 0073  74 1C				jz		TerminouArquivo
+					
+ 0075				Continua4:
+				
+					;	if ( setChar(FileHandleDst, DL) == 0) continue;
+ 0075  8B 1E 001C R			mov		bx,FileHandleDst
+ 0079  E8 00BD				call	setChar
+ 007C  73 CF				jnc		Continua2
+				
+					;	printf ("Erro na escrita....;)")
+					;   fclose(FileHandleSrc)
+					;   fclose(FileHandleDst)
+					;   exit(1)
+					;lea		bx, MsgErroWriteFile
+					;call	printf_s
+ 007E  8B 1E 001A R			mov		bx,FileHandleSrc		; Fecha arquivo origem
+ 0082  E8 0065				call	fclose
+ 0085  8B 1E 001C R			mov		bx,FileHandleDst		; Fecha arquivo destino
+ 0089  E8 005E				call	fclose
+					.exit	1
+					
+					;} while(1);
+						
+ 0091				TerminouArquivo:
+					;fclose(FileHandleSrc)
+					;fclose(FileHandleDst)
+					;exit(0)
+ 0091  8D 1E 001E R			lea 	bx, FileBuffer
+ 0095  E8 0067				call    procuraStart
+ 0098  8B 1E 001A R			mov		bx,FileHandleSrc	; Fecha arquivo origem
+ 009C  E8 004B				call	fclose
+ 009F  8B 1E 001C R			mov		bx,FileHandleDst	; Fecha arquivo destino
+ 00A3  E8 0044				call	fclose
+					.exit	0
+				
+						
+				;--------------------------------------------------------------------
+				;Funcao Pede o nome do arquivo de origem salva-o em FileNameSrc
+				;--------------------------------------------------------------------
+ 00AB				GetFileNameSrc	proc	near
+					;printf("Nome do arquivo origem: ")
+ 00AB  8D 1E 0032 R			lea		bx, MsgPedeArquivoSrc
+ 00AF  E8 00BB				call	printf_s
+				
+					;gets(FileNameSrc);
+ 00B2  8D 1E 000B R			lea		bx, FileNameSrc
+ 00B6  E8 0090				call	gets
+					
+					;printf("\r\n")
+ 00B9  8D 1E 00DE R			lea		bx, MsgCRLF
+ 00BD  E8 00AD				call	printf_s
+					
+ 00C0  C3				ret
+ 00C1				GetFileNameSrc	endp
+				
+				
+				;--------------------------------------------------------------------
+				;Funcao Pede o nome do arquivo de destino salva-o em FileNameDst
+				;--------------------------------------------------------------------
+ 00C1				GetFileNameDst	proc	near
+					;printf("Nome do arquivo destino: ");
+ 00C1  8D 1E 004B R			lea		bx, MsgPedeArquivoDst
+ 00C5  E8 00A5				call	printf_s
+					
+					;gets(FileNameDst);
+ 00C8  8D 1E 0012 R			lea		bx, FileNameDst
+ 00CC  E8 007A				call	gets
+					
+					;printf("\r\n")
+ 00CF  8D 1E 00DE R			lea		bx, MsgCRLF
+ 00D3  E8 0097				call	printf_s
+					
+ 00D6  C3				ret
+ 00D7				GetFileNameDst	endp
+				
+				;--------------------------------------------------------------------
+				;Função	Abre o arquivo cujo nome está no string apontado por DX
+				;		boolean fopen(char *FileName -> DX)
+				;Entra: DX -> ponteiro para o string com o nome do arquivo
+				;Sai:   BX -> handle do arquivo
+				;       CF -> 0, se OK
+				;--------------------------------------------------------------------
+ 00D7				fopen	proc	near
+ 00D7  B0 00				mov		al,0
+ 00D9  B4 3D				mov		ah,3dh
+ 00DB  CD 21				int		21h
+ 00DD  8B D8				mov		bx,ax
+ 00DF  C3				ret
+ 00E0				fopen	endp
+				
+				;--------------------------------------------------------------------
+				;Função Cria o arquivo cujo nome está no string apontado por DX
+				;		boolean fcreate(char *FileName -> DX)
+				;Sai:   BX -> handle do arquivo
+				;       CF -> 0, se OK
+				;--------------------------------------------------------------------
+ 00E0				fcreate	proc	near
+ 00E0  B9 0000				mov		cx,0
+ 00E3  B4 3C				mov		ah,3ch
+ 00E5  CD 21				int		21h
+ 00E7  8B D8				mov		bx,ax
+ 00E9  C3				ret
+ 00EA				fcreate	endp
+				
+				;--------------------------------------------------------------------
+				;Entra:	BX -> file handle
+				;Sai:	CF -> "0" se OK
+				;--------------------------------------------------------------------
+ 00EA				fclose	proc	near
+ 00EA  B4 3E				mov		ah,3eh
+ 00EC  CD 21				int		21h
+ 00EE  C3				ret
+ 00EF				fclose	endp
+				
+				;--------------------------------------------------------------------
+				;Função	Le um caractere do arquivo identificado pelo HANLDE BX
+				;		getChar(handle->BX)
+				;Entra: BX -> file handle
+				;Sai:   dl -> caractere
+				;		AX -> numero de caracteres lidos
+				;		CF -> "0" se leitura ok
+				;--------------------------------------------------------------------
+ 00EF				getChar	proc	near
+ 00EF  B4 3F				mov		ah,3fh
+ 00F1  B9 0001				mov		cx,1
+ 00F4  8D 16 001E R			lea		dx,FileBuffer
+ 00F8  CD 21				int		21h
+ 00FA  8A 16 001E R			mov		dl,FileBuffer
+ 00FE  C3				ret
+ 00FF				getChar	endp
+				
+				
+ 00FF				procuraStart    proc near
+				
+ 00FF				procuraStart_loop:
+ 00FF  8A 17				mov 	dl, [bx]	; Carrega o primeiro caractere do buffer
+				
+ 0101  80 FA 00				cmp 	dl, 0		; Verifica se o buffer está vazio
+ 0104  74 2A				je 		procuraStart_ret	; Se estiver, retorna
+				
+ 0106  80 FA 53				cmp     dl, 'S'             ; Verifica se o caractere é 'S'
+ 0109  75 22				jne     procuraStart_end    ; Se não for, sai do loop
+				
+ 010B  8A 57 01				mov dl, [bx + 1]
+				
+ 010E  80 FA 54				cmp     byte ptr dl, 'T'  ; Verifica se o próximo caractere é 'T'
+ 0111  75 1A				jne     procuraStart_end    ; Se não for, sai do loop
+				
+ 0113  8A 57 02				mov dl, [bx + 2]
+				
+ 0116  80 FA 41				cmp     byte ptr dl, 'A'; Verifica se o próximo caractere é 'A'
+ 0119  75 12				jne     procuraStart_end    ; Se não for, sai do loop
+				
+ 011B  8A 57 03				mov dl, [bx + 3]
+				
+ 011E  80 FA 52				cmp     byte ptr dl, 'R'; Verifica se o próximo caractere é 'R'
+ 0121  75 0A				jne     procuraStart_end    ; Se não for, sai do loop
+				
+ 0123  8A 57 04				mov dl, [bx + 4]
+				
+ 0126  80 FA 54				cmp     byte ptr dl, 'T'; Verifica se o próximo caractere é 'T'
+ 0129  75 02				jne     procuraStart_end    ; Se não for, sai do loop
+				
+ 012B  EB 04				jmp     procuraStart_print   ; Imprime a mensagem
+				
+				
+ 012D				procuraStart_end:
+ 012D  43				inc bx
+ 012E  72 CF				jb      procuraStart_loop    ; Se não chegou, continua procurando
+				
+				
+ 0130				procuraStart_ret:
+ 0130  C3				ret
+				
+ 0131				procuraStart_print:
+ 0131  8D 1E 0000 R			lea     bx, PalavraStart
+ 0135  E8 0035				call    printf_s
+ 0138  C3				ret
+				
+ 0139				procuraStart    endp
+				
+				;--------------------------------------------------------------------
+				;Entra: BX -> file handle
+				;       dl -> caractere
+				;Sai:   AX -> numero de caracteres escritos
+				;		CF -> "0" se escrita ok
+				;--------------------------------------------------------------------
+ 0139				setChar	proc	near
+ 0139  B4 40				mov		ah,40h
+ 013B  B9 0001				mov		cx,1
+ 013E  88 16 001E R			mov		FileBuffer,dl
+ 0142  8D 16 001E R			lea		dx,FileBuffer
+ 0146  CD 21				int		21h
+ 0148  C3				ret
+ 0149				setChar	endp	
+				
+				;
+				;--------------------------------------------------------------------
+				;Funcao Le um string do teclado e coloca no buffer apontado por BX
+				;		gets(char *s -> bx)
+				;--------------------------------------------------------------------
+ 0149				gets	proc	near
+ 0149  53				push	bx
+				
+ 014A  B4 0A				mov		ah,0ah						; Lê uma linha do teclado
+ 014C  8D 16 00E1 R			lea		dx,String
+ 0150  C6 06 00E1 R C4			mov		byte ptr String, MAXSTRING-4	; 2 caracteres no inicio e um eventual CR LF no final
+ 0155  CD 21				int		21h
+				
+ 0157  8D 36 00E3 R			lea		si,String+2					; Copia do buffer de teclado para o FileName
+ 015B  5F				pop		di
+ 015C  8A 0E 00E2 R			mov		cl,String+1
+ 0160  B5 00				mov		ch,0
+ 0162  8C D8				mov		ax,ds						; Ajusta ES=DS para poder usar o MOVSB
+ 0164  8E C0				mov		es,ax
+ 0166  F3/ A4				rep 	movsb
+				
+ 0168  26: C6 05 00			mov		byte ptr es:[di],0			; Coloca marca de fim de string
+ 016C  C3				ret
+ 016D				gets	endp
+				
+				;====================================================================
+				; A partir daqui, estão as funções já desenvolvidas
+				;	1) printf_s
+				;====================================================================
+					
+				;--------------------------------------------------------------------
+				;Função Escrever um string na tela
+				;		printf_s(char *s -> BX)
+				;--------------------------------------------------------------------
+ 016D				printf_s	proc	near
+ 016D  8A 17				mov		dl,[bx]
+ 016F  80 FA 00				cmp		dl,0
+ 0172  74 09				je		ps_1
+				
+ 0174  53				push	bx
+ 0175  B4 02				mov		ah,2
+ 0177  CD 21				int		21H
+ 0179  5B				pop		bx
+				
+ 017A  43				inc		bx		
+ 017B  EB F0				jmp		printf_s
+						
+ 017D				ps_1:
+ 017D  C3				ret
+ 017E				printf_s	endp
+				
+				;--------------------------------------------------------------------
+						end
+				;--------------------------------------------------------------------
+				
+				
+					
+				
+				
+
+Microsoft (R) Macro Assembler Version 6.11		    12/21/24 13:53:52
+main.asm						     Symbols 2 - 1
+
+
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+DGROUP . . . . . . . . . . . . .	GROUP
+_DATA  . . . . . . . . . . . . .	16 Bit	 01A9	  Word	  Public  'DATA'	
+STACK  . . . . . . . . . . . . .	16 Bit	 0400	  Para	  Stack	  'STACK'	 
+_TEXT  . . . . . . . . . . . . .	16 Bit	 017E	  Word	  Public  'CODE'	
+
+
+Procedures,  parameters and locals:
+
+                N a m e                 Type     Value    Attr
+
+GetFileNameDst . . . . . . . . .	P Near	 00C1	  _TEXT	Length= 0016 Private
+GetFileNameSrc . . . . . . . . .	P Near	 00AB	  _TEXT	Length= 0016 Private
+fclose . . . . . . . . . . . . .	P Near	 00EA	  _TEXT	Length= 0005 Private
+fcreate  . . . . . . . . . . . .	P Near	 00E0	  _TEXT	Length= 000A Private
+fopen  . . . . . . . . . . . . .	P Near	 00D7	  _TEXT	Length= 0009 Private
+getChar  . . . . . . . . . . . .	P Near	 00EF	  _TEXT	Length= 0010 Private
+gets . . . . . . . . . . . . . .	P Near	 0149	  _TEXT	Length= 0024 Private
+printf_s . . . . . . . . . . . .	P Near	 016D	  _TEXT	Length= 0011 Private
+procuraStart . . . . . . . . . .	P Near	 00FF	  _TEXT	Length= 003A Private
+setChar  . . . . . . . . . . . .	P Near	 0139	  _TEXT	Length= 0010 Private
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@CodeSize  . . . . . . . . . . .	Number	 0000h	 
+@DataSize  . . . . . . . . . . .	Number	 0000h	 
+@Interface . . . . . . . . . . .	Number	 0000h	 
+@Model . . . . . . . . . . . . .	Number	 0002h	 
+@Startup . . . . . . . . . . . .	L Near	 0000	  _TEXT	
+@code  . . . . . . . . . . . . .	Text   	 _TEXT
+@data  . . . . . . . . . . . . .	Text   	 DGROUP
+@fardata?  . . . . . . . . . . .	Text   	 FAR_BSS
+@fardata . . . . . . . . . . . .	Text   	 FAR_DATA
+@stack . . . . . . . . . . . . .	Text   	 DGROUP
+CR . . . . . . . . . . . . . . .	Number	 000Dh	 
+Continua1  . . . . . . . . . . .	L Near	 0030	  _TEXT	
+Continua2  . . . . . . . . . . .	L Near	 004D	  _TEXT	
+Continua3  . . . . . . . . . . .	L Near	 0070	  _TEXT	
+Continua4  . . . . . . . . . . .	L Near	 0075	  _TEXT	
+FileBuffer . . . . . . . . . . .	Byte	 001E	  _DATA	
+FileHandleDst  . . . . . . . . .	Word	 001C	  _DATA	
+FileHandleSrc  . . . . . . . . .	Word	 001A	  _DATA	
+FileNameDst  . . . . . . . . . .	Byte	 0012	  _DATA	
+FileNameSrc  . . . . . . . . . .	Byte	 000B	  _DATA	
+LF . . . . . . . . . . . . . . .	Number	 000Ah	 
+MAXSTRING  . . . . . . . . . . .	Number	 00C8h	 
+MsgCRLF  . . . . . . . . . . . .	Byte	 00DE	  _DATA	
+MsgErroCreateFile  . . . . . . .	Byte	 0084	  _DATA	
+MsgErroOpenFile  . . . . . . . .	Byte	 0065	  _DATA	
+MsgErroReadFile  . . . . . . . .	Byte	 00A2	  _DATA	
+MsgErroWriteFile . . . . . . . .	Byte	 00C0	  _DATA	
+MsgPedeArquivoDst  . . . . . . .	Byte	 004B	  _DATA	
+MsgPedeArquivoSrc  . . . . . . .	Byte	 0032	  _DATA	
+NewBuffer  . . . . . . . . . . .	Byte	 0028	  _DATA	
+PalavraStart . . . . . . . . . .	Byte	 0000	  _DATA	
+PalavraStop  . . . . . . . . . .	Byte	 0006	  _DATA	
+String . . . . . . . . . . . . .	Byte	 00E1	  _DATA	
+TerminouArquivo  . . . . . . . .	L Near	 0091	  _TEXT	
+procuraStart_end . . . . . . . .	L Near	 012D	  _TEXT	
+procuraStart_loop  . . . . . . .	L Near	 00FF	  _TEXT	
+procuraStart_print . . . . . . .	L Near	 0131	  _TEXT	
+procuraStart_ret . . . . . . . .	L Near	 0130	  _TEXT	
+ps_1 . . . . . . . . . . . . . .	L Near	 017D	  _TEXT	
+
+	   0 Warnings
+	   0 Errors

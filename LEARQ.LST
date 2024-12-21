@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 6.11		    12/21/24 09:13:44
+Microsoft (R) Macro Assembler Version 6.11		    12/21/24 13:50:36
 leArq.asm						     Page 1 - 1
 
 
@@ -7,20 +7,20 @@ leArq.asm						     Page 1 - 1
 				
  0000					.data
 				
- = 0064				BUFF_SIZE	equ 100 ; tam. máximo dos dados lidos no buffer
+ = 0258				BUFF_SIZE	equ 600 ; tam. máximo dos dados lidos no buffer
 				
- 0000 61 72 71 2E 74 78		NomeArq	db "arq.txt",0    ; nome arq. terminado com \0
-       74 00
- 0008  0064 [			BuffArq	db BUFF_SIZE dup(?)	; buffer para dados lidos do arquivo
+ 0000 49 4E 2E 74 78 74		NomeArq	db "IN.txt",0    ; nome arq. terminado com \0
+       00
+ 0007  0258 [			BuffArq	db BUFF_SIZE dup(?)	; buffer para dados lidos do arquivo
         00
        ]
- 006C 0000			BytesLidos	dw ?	; guarda quantidade de bytes lidos
- 006E 0000			HandleArq dw ?		; guarda handle do arquivo
- 0070 45 72 72 6F 20 61		MsgErroAbr	db "Erro ao abrir arquivo!$"	; msg de erro ao abrir arquivo, terminada em $
+ 025F 0000			BytesLidos	dw ?	; guarda quantidade de bytes lidos
+ 0261 0000			HandleArq dw ?		; guarda handle do arquivo
+ 0263 45 72 72 6F 20 61		MsgErroAbr	db "Erro ao abrir arquivo!$"	; msg de erro ao abrir arquivo, terminada em $
        6F 20 61 62 72 69
        72 20 61 72 71 75
        69 76 6F 21 24
- 0087 45 72 72 6F 20 61		MsgErroLer	db "Erro ao ler arquivo!$"		; msg de erro ao ler arquivo, terminada em $
+ 027A 45 72 72 6F 20 61		MsgErroLer	db "Erro ao ler arquivo!$"		; msg de erro ao ler arquivo, terminada em $
        6F 20 6C 65 72 20
        61 72 71 75 69 76
        6F 21 24
@@ -34,46 +34,46 @@ leArq.asm						     Page 1 - 1
  001D  B4 3D				mov ah,3dh
  001F  CD 21				int 21h ; CF == 0 se OK
  0021  72 32				jc ErroAbrir ; se deu erro, imprime uma msg na tela
- 0023  A3 006E R			mov HandleArq,ax
+ 0023  A3 0261 R			mov HandleArq,ax
 				
 					; le arquivo - bx tem o handle
- 0026  8B 1E 006E R			mov bx,HandleArq
- 002A  8D 16 0008 R			lea dx,BuffArq
+ 0026  8B 1E 0261 R			mov bx,HandleArq
+ 002A  8D 16 0007 R			lea dx,BuffArq
  002E  B4 3F				mov ah,3fh
- 0030  B9 0064				mov cx,BUFF_SIZE
+ 0030  B9 0258				mov cx,BUFF_SIZE
  0033  CD 21				int 21h ; CF == 0 se OK, AX tem bytes lidos
  0035  72 28				jc ErroLer
- 0037  A3 006C R			mov BytesLidos,ax
+ 0037  A3 025F R			mov BytesLidos,ax
 				
 					; adiciona o $ no final do buffer de arquivo (para usarmos putmsg)
- 003A  8D 1E 0008 R			lea bx,BuffArq
- 003E  8B 36 006C R			mov si,BytesLidos
+ 003A  8D 1E 0007 R			lea bx,BuffArq
+ 003E  8B 36 025F R			mov si,BytesLidos
  0042  C6 00 24				mov byte ptr [bx+si],'$'
 						
 					; escreve na tela o dado lido com putmsg
- 0045  8D 16 0008 R			lea dx,BuffArq
+ 0045  8D 16 0007 R			lea dx,BuffArq
  0049  B4 09				mov ah,9
  004B  CD 21				int 21h
 				
 					; fecha arquivo
  004D  B4 3E				mov ah, 3eh
- 004F  8B 1E 006E R			mov bx,HandleArq
+ 004F  8B 1E 0261 R			mov bx,HandleArq
  0053  EB 12				jmp Fim
 				
  0055				ErroAbrir:
- 0055  8D 16 0070 R			lea dx,MsgErroAbr
+ 0055  8D 16 0263 R			lea dx,MsgErroAbr
  0059  B4 09				mov ah,9
  005B  CD 21				int 21h
  005D  EB 08				jmp Fim
  005F				ErroLer:
- 005F  8D 16 0087 R			lea dx,MsgErroLer
+ 005F  8D 16 027A R			lea dx,MsgErroLer
  0063  B4 09				mov ah,9
  0065  CD 21				int 21h
 				
  0067				Fim:
 					.exit
 					END
-Microsoft (R) Macro Assembler Version 6.11		    12/21/24 09:13:44
+Microsoft (R) Macro Assembler Version 6.11		    12/21/24 13:50:36
 leArq.asm						     Symbols 2 - 1
 
 
@@ -84,7 +84,7 @@ Segments and Groups:
                 N a m e                 Size     Length   Align   Combine Class
 
 DGROUP . . . . . . . . . . . . .	GROUP
-_DATA  . . . . . . . . . . . . .	16 Bit	 009C	  Word	  Public  'DATA'	
+_DATA  . . . . . . . . . . . . .	16 Bit	 028F	  Word	  Public  'DATA'	
 STACK  . . . . . . . . . . . . .	16 Bit	 0400	  Para	  Stack	  'STACK'	 
 _TEXT  . . . . . . . . . . . . .	16 Bit	 006B	  Word	  Public  'CODE'	
 
@@ -103,15 +103,15 @@ Symbols:
 @fardata?  . . . . . . . . . . .	Text   	 FAR_BSS
 @fardata . . . . . . . . . . . .	Text   	 FAR_DATA
 @stack . . . . . . . . . . . . .	Text   	 DGROUP
-BUFF_SIZE  . . . . . . . . . . .	Number	 0064h	 
-BuffArq  . . . . . . . . . . . .	Byte	 0008	  _DATA	
-BytesLidos . . . . . . . . . . .	Word	 006C	  _DATA	
+BUFF_SIZE  . . . . . . . . . . .	Number	 0258h	 
+BuffArq  . . . . . . . . . . . .	Byte	 0007	  _DATA	
+BytesLidos . . . . . . . . . . .	Word	 025F	  _DATA	
 ErroAbrir  . . . . . . . . . . .	L Near	 0055	  _TEXT	
 ErroLer  . . . . . . . . . . . .	L Near	 005F	  _TEXT	
 Fim  . . . . . . . . . . . . . .	L Near	 0067	  _TEXT	
-HandleArq  . . . . . . . . . . .	Word	 006E	  _DATA	
-MsgErroAbr . . . . . . . . . . .	Byte	 0070	  _DATA	
-MsgErroLer . . . . . . . . . . .	Byte	 0087	  _DATA	
+HandleArq  . . . . . . . . . . .	Word	 0261	  _DATA	
+MsgErroAbr . . . . . . . . . . .	Byte	 0263	  _DATA	
+MsgErroLer . . . . . . . . . . .	Byte	 027A	  _DATA	
 NomeArq  . . . . . . . . . . . .	Byte	 0000	  _DATA	
 
 	   0 Warnings
