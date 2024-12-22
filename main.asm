@@ -228,11 +228,7 @@ setChar	proc	near
 	ret
 setChar	endp	
 
-;====================================================================
-; A partir daqui, estão as funções já desenvolvidas
-;	1) printf_s
-;====================================================================
-	
+
 ;--------------------------------------------------------------------
 ;Função Escrever um string na tela
 ;		printf_s(char *s -> BX)
