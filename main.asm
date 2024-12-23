@@ -100,10 +100,8 @@ TerminouArquivo:
 	call    transformaEmBarcode
 
 
-	;mov		bx,FileHandleDst
-	;call	setChar
-	;jnc		Continua2
-
+	lea 	bx, OutputBuffer
+	call 	printf_s
 
 
 
@@ -213,11 +211,20 @@ criaNovoBuffer_loop:
 	add     bx, 4
 	lea 	si, NewBuffer
 
+criaNovoBuffer_loop2:
+	inc bx
+	mov 	dl, [bx]
+	cmp     byte ptr dl, 0Ah ; CR (Carriage Return)
+	je criaNovoBuffer_loop2
+	cmp     byte ptr dl, 0Dh ; LF (Line Feed)
+	je criaNovoBuffer_loop2
+
+	dec bx
 criaNovoBuffer_insere:
 	add     ax, si
 	inc 	bx
 	mov 	dl, [bx]
-	cmp     byte ptr dl, 0 ; 
+	cmp     byte ptr dl, 0 
 	je		criaNovoBuffer_sem_stop
 	cmp 	byte ptr dl, 'S' ; Verifica se o próximo caractere é 'S' de 'STOP'
 	je		criaNovoBuffer_print
@@ -260,13 +267,20 @@ criaNovoBuffer    endp
 transformaEmBarcode proc near
 	mov     cx, 0
 	mov 	si, 0
-transformaEmBarcode_loop:
 	lea 	bx, NewBuffer	
+transformaEmBarcode_loop:
 	mov     dl, [bx]
 
+	inc bx
 
 	cmp     byte ptr dl, 0    ; Verifica se o buffer está vazio
 	je      transformaEmBarcode_fim_traducao    ; Se estiver, retorna
+
+	cmp 	byte ptr dl, 13
+	je 		transformaEmBarcode_loop
+
+	cmp 	byte ptr dl, 10
+	je 		transformaEmBarcode_loop
 
 	cmp     byte ptr dl, '0'    ; Verifica se o caractere é '0'
 	je      transformaEmBarcode_0    ; Se for, pula para a função que transforma em barcode
@@ -300,8 +314,6 @@ transformaEmBarcode_loop:
 
 	cmp     byte ptr dl, '-'    ; Verifica se o caractere é '-'
 	je      transformaEmBarcode_menos    ; Se for, pula para a função que transforma em barcode
-
-
 
 	jmp     transformaEmBarcode_erro_caractere_invalido
 
