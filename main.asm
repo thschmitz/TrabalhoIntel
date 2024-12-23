@@ -226,13 +226,28 @@ criaNovoBuffer_insere:
 	mov 	dl, [bx]
 	cmp     byte ptr dl, 0 
 	je		criaNovoBuffer_sem_stop
-	cmp 	byte ptr dl, 'S' ; Verifica se o próximo caractere é 'S' de 'STOP'
-	je		criaNovoBuffer_print
 
 	mov 	byte ptr [si], dl
 	inc 	si
+
+	cmp 	byte ptr dl, 'S' ; Verifica se o próximo caractere é 'S' de 'STOP'
+	jne		criaNovoBuffer_insere
+	dec si 
+
+	mov 	dl, [bx + 1]
+	cmp 	byte ptr dl, 'T' ; Verifica se o próximo caractere é 'T' de 'STOP'
+	jne		criaNovoBuffer_insere
+	mov 	dl, [bx + 2]
+	cmp 	byte ptr dl, 'O' ; Verifica se o próximo caractere é 'O' de 'STOP'
+	jne		criaNovoBuffer_insere
+	mov 	dl, [bx + 3]
+	cmp 	byte ptr dl, 'P' ; Verifica se o próximo caractere é 'P' de 'STOP'
+	jne		criaNovoBuffer_insere
+	add 	bx, 4
+
+	mov     [si], 0
 	
-	jmp     criaNovoBuffer_insere
+	jmp     criaNovoBuffer_print
 	
 criaNovoBuffer_end:
 	inc bx
@@ -245,7 +260,6 @@ criaNovoBuffer_sem_start:
 	.exit
 
 criaNovoBuffer_print:
-	dec NewBuffer
 	lea bx, NewBuffer
 
 	call printf_s
@@ -267,7 +281,12 @@ criaNovoBuffer    endp
 transformaEmBarcode proc near
 	mov     cx, 0
 	mov 	si, 0
-	lea 	bx, NewBuffer	
+	lea 	bx, NewBuffer
+	
+	mov     dl, 1011001b
+	mov     [OutputBuffer + cx], dl
+	inc     cx
+
 transformaEmBarcode_loop:
 	mov     dl, [bx]
 
@@ -323,89 +342,77 @@ transformaEmBarcode_erro_caractere_invalido:
 	.exit
 
 transformaEmBarcode_0:
-	mov     dl, BarCodeTable[0]
-	mov     [OutputBuffer + cx], dl
-	inc     cx
-	
-	jmp     transformaEmBarcode_loop
+    mov     dl, 101011b            ; Caractere '0' -> Código binário
+    mov     [OutputBuffer + cx], dl; Armazena no OutputBuffer
+    inc     cx                     ; Incrementa o índice
+    jmp     transformaEmBarcode_loop
 
 transformaEmBarcode_1:
-	mov     dl, BarCodeTable[1]
-	mov     [OutputBuffer + cx], dl
-	inc     cx
-	
-	jmp     transformaEmBarcode_loop
+    mov     dl, 1101011b           ; Caractere '1' -> Código binário
+    mov     [OutputBuffer + cx], dl
+    inc     cx
+    jmp     transformaEmBarcode_loop
 
 transformaEmBarcode_2:
-	mov     dl, BarCodeTable[2]
-	mov     [OutputBuffer + cx], dl
-	inc     cx
-	
-	jmp     transformaEmBarcode_loop
+    mov     dl, 1001011b           ; Caractere '2' -> Código binário
+    mov     [OutputBuffer + cx], dl
+    inc     cx
+    jmp     transformaEmBarcode_loop
 
 transformaEmBarcode_3:
-	mov     dl, BarCodeTable[3]
-	mov     [OutputBuffer + cx], dl
-	inc     cx
-	
-	jmp     transformaEmBarcode_loop
+    mov     dl, 1100101b           ; Caractere '3' -> Código binário
+    mov     [OutputBuffer + cx], dl
+    inc     cx
+    jmp     transformaEmBarcode_loop
 
 transformaEmBarcode_4:
-	mov     dl, BarCodeTable[4]
-	mov     [OutputBuffer + cx], dl
-	inc     cx
-	
-	jmp     transformaEmBarcode_loop
+    mov     dl, 1011011b           ; Caractere '4' -> Código binário
+    mov     [OutputBuffer + cx], dl
+    inc     cx
+    jmp     transformaEmBarcode_loop
 
 transformaEmBarcode_5:
-	mov     dl, BarCodeTable[5]
-	mov     [OutputBuffer + cx], dl
-	inc     cx
-	
-	jmp     transformaEmBarcode_loop
+    mov     dl, 1101101b           ; Caractere '5' -> Código binário
+    mov     [OutputBuffer + cx], dl
+    inc     cx
+    jmp     transformaEmBarcode_loop
 
 transformaEmBarcode_6:
-	mov     dl, BarCodeTable[6]
-	mov     [OutputBuffer + cx], dl
-	inc     cx
-	
-	jmp     transformaEmBarcode_loop
+    mov     dl, 1001101b           ; Caractere '6' -> Código binário
+    mov     [OutputBuffer + cx], dl
+    inc     cx
+    jmp     transformaEmBarcode_loop
 
 transformaEmBarcode_7:
-	mov     dl, BarCodeTable[7]
-	mov     [OutputBuffer + cx], dl
-	inc     cx
-	
-	jmp     transformaEmBarcode_loop
+    mov     dl, 1010011b           ; Caractere '7' -> Código binário
+    mov     [OutputBuffer + cx], dl
+    inc     cx
+    jmp     transformaEmBarcode_loop
 
 transformaEmBarcode_8:
-	mov     dl, BarCodeTable[8]
-	mov     [OutputBuffer + cx], dl
-	inc     cx
-	
-	jmp     transformaEmBarcode_loop
+    mov     dl, 1101001b           ; Caractere '8' -> Código binário
+    mov     [OutputBuffer + cx], dl
+    inc     cx
+    jmp     transformaEmBarcode_loop
 
 transformaEmBarcode_9:
-	mov     dl, BarCodeTable[9]
-	mov     [OutputBuffer + cx], dl
-	inc     cx
-	
-	jmp     transformaEmBarcode_loop
+    mov     dl, 1101101b           ; Caractere '9' -> Código binário
+    mov     [OutputBuffer + cx], dl
+    inc     cx
+    jmp     transformaEmBarcode_loop
 
 transformaEmBarcode_menos:
-	mov     dl, BarCodeTable[10]
-	mov     [OutputBuffer + cx], dl
-	inc     cx
-	
-	jmp     transformaEmBarcode_loop
+    mov     dl, 101101b            ; Caractere '-' -> Código binário
+    mov     [OutputBuffer + cx], dl
+    inc     cx
+    jmp     transformaEmBarcode_loop
 
 transformaEmBarcode_fim_traducao:
-	mov     dl, BarCodeTable[11]
-	mov     [OutputBuffer + cx], dl
-	inc     cx
-	
+    mov     dl, 1011001b           ; Código de finalização
+    mov     [OutputBuffer + cx], dl
+    inc     cx
+    ret
 
-	ret
 
 transformaEmBarcode endp
 
