@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 6.11		    12/21/24 18:13:41
+Microsoft (R) Macro Assembler Version 6.11		    12/22/24 24:05:38
 main.asm						     Page 1 - 1
 
 
@@ -82,7 +82,17 @@ main.asm						     Page 1 - 1
        20 6E 6F 20 61 72
        71 75 69 76 6F 2E
        0D 0A 00
- 10CD 45 72 72 6F 3A 20		MsgErroWriteFile	db	"Erro: Nao foi possivel fazer a escrita do arquivo.", CR, LF, 0
+ 10CD 45 72 72 6F 3A 20		MsgErroSemStop		db	"Erro: Nao foi encontrado a palavra 'STOP' no arquivo.", CR, LF, 0
+       4E 61 6F 20 66 6F
+       69 20 65 6E 63 6F
+       6E 74 72 61 64 6F
+       20 61 20 70 61 6C
+       61 76 72 61 20 27
+       53 54 4F 50 27 20
+       6E 6F 20 61 72 71
+       75 69 76 6F 2E 0D
+       0A 00
+ 1105 45 72 72 6F 3A 20		MsgErroWriteFile	db	"Erro: Nao foi possivel fazer a escrita do arquivo.", CR, LF, 0
        4E 61 6F 20 66 6F
        69 20 70 6F 73 73
        69 76 65 6C 20 66
@@ -91,7 +101,7 @@ main.asm						     Page 1 - 1
        74 61 20 64 6F 20
        61 72 71 75 69 76
        6F 2E 0D 0A 00
- 1102 0D 0A 00			MsgCRLF				db	CR, LF, 0
+ 113A 0D 0A 00			MsgCRLF				db	CR, LF, 0
 				
  0000					.code
 					.startup
@@ -101,7 +111,7 @@ main.asm						     Page 1 - 1
  001E  89 1E 001C R			mov		FileHandleSrc,bx
  0022  73 2C				jnc		Continua2
  0024  8D 1E 0FF3 R			lea		bx, MsgErroOpenFile
- 0028  E8 0111				call	printf_s
+ 0028  E8 0133				call	printf_s
 					.exit	1
  0030				Continua1:
 				
@@ -112,7 +122,7 @@ main.asm						     Page 1 - 1
  003D  8B 1E 001C R			mov		bx,FileHandleSrc
  0041  E8 007B				call	fclose
  0044  8D 1E 1029 R			lea		bx, MsgErroCreateFile
- 0048  E8 00F1				call	printf_s
+ 0048  E8 0113				call	printf_s
 					.exit	1
  0050				Continua2:
 				
@@ -120,7 +130,7 @@ main.asm						     Page 1 - 1
  0054  E8 006D				call	getChar
  0057  73 1A				jnc		Continua3
  0059  8D 1E 105E R			lea		bx, MsgErroReadFile
- 005D  E8 00DC				call	printf_s
+ 005D  E8 00FE				call	printf_s
  0060  8B 1E 001C R			mov		bx,FileHandleSrc
  0064  E8 0058				call	fclose
  0067  8B 1E 001E R			mov		bx,FileHandleDst
@@ -134,7 +144,7 @@ main.asm						     Page 1 - 1
  007A				Continua4:
 				
  007A  8B 1E 001E R			mov		bx,FileHandleDst
- 007E  E8 00AB				call	setChar
+ 007E  E8 00CD				call	setChar
  0081  73 CD				jnc		Continua2
 				
  0083  8B 1E 001C R			mov		bx,FileHandleSrc		; Fecha arquivo origem
@@ -145,7 +155,7 @@ main.asm						     Page 1 - 1
 					
  0096				TerminouArquivo:
 				
- 0096  E8 0042				call    procuraStart
+ 0096  E8 0042				call    criaNovoBuffer
  0099  8B 1E 001C R			mov		bx,FileHandleSrc	; Fecha arquivo origem
  009D  E8 001F				call	fclose
  00A0  8B 1E 001E R			mov		bx,FileHandleDst	; Fecha arquivo destino
@@ -218,59 +228,77 @@ main.asm						     Page 1 - 1
 				;Sai:   
 				;		NovoBuffer -> buffer com o conteudo do arquivo
 				;--------------------------------------------------------------------
- 00DB				procuraStart    proc near
+ 00DB				criaNovoBuffer    proc near
  00DB  8D 1E 0020 R			lea bx, FileBuffer
 				
- 00DF				procuraStart_loop:
+ 00DF				criaNovoBuffer_loop:
  00DF  8A 17				mov 	dl, [bx]	; Carrega o primeiro caractere do buffer
 					
  00E1  80 FA 00				cmp 	dl, 0		; Verifica se o buffer está vazio
- 00E4  74 30				je 		procuraStart_ret	; Se estiver, retorna
+ 00E4  74 43				je 		criaNovoBuffer_sem_start	; Se estiver, retorna
 				
  00E6  80 FA 53				cmp     byte ptr dl, 'S'             ; Verifica se o caractere é 'S'
- 00E9  75 28				jne     procuraStart_end    ; Se não for, sai do loop
+ 00E9  75 3B				jne     criaNovoBuffer_end    ; Se não for, sai do loop
 				
  00EB  8A 57 01				mov dl, [bx + 1]
 				
  00EE  80 FA 54				cmp     byte ptr dl, 'T'  ; Verifica se o próximo caractere é 'T'
- 00F1  75 20				jne     procuraStart_end    ; Se não for, sai do loop
+ 00F1  75 33				jne     criaNovoBuffer_end    ; Se não for, sai do loop
 				
  00F3  8A 57 02				mov dl, [bx + 2]
 				
  00F6  80 FA 41				cmp     byte ptr dl, 'A'; Verifica se o próximo caractere é 'A'
- 00F9  75 18				jne     procuraStart_end    ; Se não for, sai do loop
+ 00F9  75 2B				jne     criaNovoBuffer_end    ; Se não for, sai do loop
 				
  00FB  8A 57 03				mov dl, [bx + 3]
 				
  00FE  80 FA 52				cmp     byte ptr dl, 'R'; Verifica se o próximo caractere é 'R'
- 0101  75 10				jne     procuraStart_end    ; Se não for, sai do loop
+ 0101  75 23				jne     criaNovoBuffer_end    ; Se não for, sai do loop
 				
  0103  8A 57 04				mov dl, [bx + 4]
 				
  0106  80 FA 54				cmp     byte ptr dl, 'T'; Verifica se o próximo caractere é 'T'
- 0109  75 08				jne     procuraStart_end    ; Se não for, sai do loop
+ 0109  75 1B				jne     criaNovoBuffer_end    ; Se não for, sai do loop
+ 010B  83 C3 04				add     bx, 4
+ 010E  8D 36 07F0 R			lea 	si, NewBuffer
 				
- 010B  8A 57 05				mov dl, [bx + 5]	; Adicione essa linha para verificar o próximo caractere
+ 0112				criaNovoBuffer_insere:
+ 0112  03 C6				add     ax, si
+ 0114  43				inc 	bx
+ 0115  8A 17				mov 	dl, [bx]
+ 0117  80 FA 00				cmp     byte ptr dl, 0 ; 
+ 011A  74 27				je		criaNovoBuffer_sem_stop
+ 011C  80 FA 53				cmp 	byte ptr dl, 'S' ; Verifica se o próximo caractere é 'S' de 'STOP'
+ 011F  74 16				je		criaNovoBuffer_print
 				
- 010E  80 FA 00				cmp     byte ptr dl, 0 ; Verifica se o próximo caractere é nulo
- 0111  75 11				jne     procuraStart_print   ; Imprime a mensagem
+ 0121  88 14				mov 	byte ptr [si], dl
+ 0123  46				inc 	si
+					
+ 0124  EB EC				jmp     criaNovoBuffer_insere
+					
+ 0126				criaNovoBuffer_end:
+ 0126  43				inc bx
+ 0127  EB B6				jmp criaNovoBuffer_loop
 				
- 0113				procuraStart_end:
- 0113  43				inc bx
- 0114  EB C9				jmp procuraStart_loop
-				
- 0116				procuraStart_ret:
- 0116  83 F9 00				cmp cx, 0
- 0119  8D 1E 1094 R			lea bx, MsgErroSemStart
- 011D  E8 001C				call printf_s
+ 0129				criaNovoBuffer_sem_start:
+ 0129  83 F9 00				cmp cx, 0
+ 012C  8D 1E 1094 R			lea bx, MsgErroSemStart
+ 0130  E8 002B				call printf_s
 					.exit
 				
- 0124				procuraStart_print:
- 0124  8D 1E 0002 R			lea bx, PalavraStart
- 0128  E8 0011				call printf_s
- 012B  C3				ret
+ 0137				criaNovoBuffer_print:
+ 0137  FE 0E 07F0 R			dec NewBuffer
+ 013B  8D 1E 07F0 R			lea bx, NewBuffer
 				
- 012C				procuraStart    endp
+ 013F  E8 001C				call printf_s
+ 0142  C3				ret
+				
+ 0143				criaNovoBuffer_sem_stop:
+ 0143  8D 1E 10CD R			lea bx, MsgErroSemStop
+ 0147  E8 0014				call printf_s
+					.exit
+				
+ 014E				criaNovoBuffer    endp
 				
 				;--------------------------------------------------------------------
 				;Entra: BX -> file handle
@@ -278,40 +306,36 @@ main.asm						     Page 1 - 1
 				;Sai:   AX -> numero de caracteres escritos
 				;		CF -> "0" se escrita ok
 				;--------------------------------------------------------------------
- 012C				setChar	proc	near
- 012C  B4 40				mov		ah,40h
- 012E  B9 0001				mov		cx,1
- 0131  88 16 0020 R			mov		FileBuffer,dl
- 0135  8D 16 0020 R			lea		dx,FileBuffer
- 0139  CD 21				int		21h
- 013B  C3				ret
- 013C				setChar	endp	
+ 014E				setChar	proc	near
+ 014E  B4 40				mov		ah,40h
+ 0150  B9 0001				mov		cx,1
+ 0153  88 16 0020 R			mov		FileBuffer,dl
+ 0157  8D 16 0020 R			lea		dx,FileBuffer
+ 015B  CD 21				int		21h
+ 015D  C3				ret
+ 015E				setChar	endp	
 				
-				;====================================================================
-				; A partir daqui, estão as funções já desenvolvidas
-				;	1) printf_s
-				;====================================================================
-					
+				
 				;--------------------------------------------------------------------
 				;Função Escrever um string na tela
 				;		printf_s(char *s -> BX)
 				;--------------------------------------------------------------------
- 013C				printf_s	proc	near
- 013C  8A 17				mov		dl,[bx]
- 013E  80 FA 00				cmp		dl,0
- 0141  74 09				je		ps_1
+ 015E				printf_s	proc	near
+ 015E  8A 17				mov		dl,[bx]
+ 0160  80 FA 00				cmp		dl,0
+ 0163  74 09				je		ps_1
 				
- 0143  53				push	bx
- 0144  B4 02				mov		ah,2
- 0146  CD 21				int		21H
- 0148  5B				pop		bx
+ 0165  53				push	bx
+ 0166  B4 02				mov		ah,2
+ 0168  CD 21				int		21H
+ 016A  5B				pop		bx
 				
- 0149  43				inc		bx		
- 014A  EB F0				jmp		printf_s
+ 016B  43				inc		bx		
+ 016C  EB F0				jmp		printf_s
 						
- 014C				ps_1:
- 014C  C3				ret
- 014D				printf_s	endp
+ 016E				ps_1:
+ 016E  C3				ret
+ 016F				printf_s	endp
 				
 				;--------------------------------------------------------------------
 						end
@@ -322,7 +346,7 @@ main.asm						     Page 1 - 1
 				
 				
 
-Microsoft (R) Macro Assembler Version 6.11		    12/21/24 18:13:41
+Microsoft (R) Macro Assembler Version 6.11		    12/22/24 24:05:38
 main.asm						     Symbols 2 - 1
 
 
@@ -333,22 +357,22 @@ Segments and Groups:
                 N a m e                 Size     Length   Align   Combine Class
 
 DGROUP . . . . . . . . . . . . .	GROUP
-_DATA  . . . . . . . . . . . . .	16 Bit	 1105	  Word	  Public  'DATA'	
+_DATA  . . . . . . . . . . . . .	16 Bit	 113D	  Word	  Public  'DATA'	
 STACK  . . . . . . . . . . . . .	16 Bit	 0400	  Para	  Stack	  'STACK'	 
-_TEXT  . . . . . . . . . . . . .	16 Bit	 014D	  Word	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	16 Bit	 016F	  Word	  Public  'CODE'	
 
 
 Procedures,  parameters and locals:
 
                 N a m e                 Type     Value    Attr
 
+criaNovoBuffer . . . . . . . . .	P Near	 00DB	  _TEXT	Length= 0073 Private
 fclose . . . . . . . . . . . . .	P Near	 00BF	  _TEXT	Length= 0005 Private
 fcreate  . . . . . . . . . . . .	P Near	 00B5	  _TEXT	Length= 000A Private
 fopen  . . . . . . . . . . . . .	P Near	 00AC	  _TEXT	Length= 0009 Private
 getChar  . . . . . . . . . . . .	P Near	 00C4	  _TEXT	Length= 0017 Private
-printf_s . . . . . . . . . . . .	P Near	 013C	  _TEXT	Length= 0011 Private
-procuraStart . . . . . . . . . .	P Near	 00DB	  _TEXT	Length= 0051 Private
-setChar  . . . . . . . . . . . .	P Near	 012C	  _TEXT	Length= 0010 Private
+printf_s . . . . . . . . . . . .	P Near	 015E	  _TEXT	Length= 0011 Private
+setChar  . . . . . . . . . . . .	P Near	 014E	  _TEXT	Length= 0010 Private
 
 
 Symbols:
@@ -377,23 +401,26 @@ FileHandleSrc  . . . . . . . . .	Word	 001C	  _DATA
 FileNameDst  . . . . . . . . . .	Byte	 0014	  _DATA	
 FileNameSrc  . . . . . . . . . .	Byte	 000D	  _DATA	
 LF . . . . . . . . . . . . . . .	Number	 000Ah	 
-MsgCRLF  . . . . . . . . . . . .	Byte	 1102	  _DATA	
+MsgCRLF  . . . . . . . . . . . .	Byte	 113A	  _DATA	
 MsgErroCreateFile  . . . . . . .	Byte	 1029	  _DATA	
 MsgErroOpenFile  . . . . . . . .	Byte	 0FF3	  _DATA	
 MsgErroReadFile  . . . . . . . .	Byte	 105E	  _DATA	
 MsgErroSemStart  . . . . . . . .	Byte	 1094	  _DATA	
-MsgErroWriteFile . . . . . . . .	Byte	 10CD	  _DATA	
+MsgErroSemStop . . . . . . . . .	Byte	 10CD	  _DATA	
+MsgErroWriteFile . . . . . . . .	Byte	 1105	  _DATA	
 MsgPedeArquivoDst  . . . . . . .	Byte	 0FD9	  _DATA	
 MsgPedeArquivoSrc  . . . . . . .	Byte	 0FC0	  _DATA	
 NewBuffer  . . . . . . . . . . .	Byte	 07F0	  _DATA	
 PalavraStart . . . . . . . . . .	Byte	 0002	  _DATA	
 PalavraStop  . . . . . . . . . .	Byte	 0008	  _DATA	
 TerminouArquivo  . . . . . . . .	L Near	 0096	  _TEXT	
-procuraStart_end . . . . . . . .	L Near	 0113	  _TEXT	
-procuraStart_loop  . . . . . . .	L Near	 00DF	  _TEXT	
-procuraStart_print . . . . . . .	L Near	 0124	  _TEXT	
-procuraStart_ret . . . . . . . .	L Near	 0116	  _TEXT	
-ps_1 . . . . . . . . . . . . . .	L Near	 014C	  _TEXT	
+criaNovoBuffer_end . . . . . . .	L Near	 0126	  _TEXT	
+criaNovoBuffer_insere  . . . . .	L Near	 0112	  _TEXT	
+criaNovoBuffer_loop  . . . . . .	L Near	 00DF	  _TEXT	
+criaNovoBuffer_print . . . . . .	L Near	 0137	  _TEXT	
+criaNovoBuffer_sem_start . . . .	L Near	 0129	  _TEXT	
+criaNovoBuffer_sem_stop  . . . .	L Near	 0143	  _TEXT	
+ps_1 . . . . . . . . . . . . . .	L Near	 016E	  _TEXT	
 
 	   0 Warnings
 	   0 Errors

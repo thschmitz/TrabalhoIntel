@@ -31,6 +31,7 @@ MsgErroOpenFile		db	"Erro: Nao foi possivel fazer a abertura do arquivo.", CR, L
 MsgErroCreateFile	db	"Erro: Nao foi possivel fazer a criacao do arquivo.", CR, LF, 0
 MsgErroReadFile		db	"Erro: Nao foi possível fazer a leitura do arquivo.", CR, LF, 0
 MsgErroSemStart		db	"Erro: Nao foi encontrado a palavra 'START' no arquivo.", CR, LF, 0
+MsgErroSemStop		db	"Erro: Nao foi encontrado a palavra 'STOP' no arquivo.", CR, LF, 0
 MsgErroWriteFile	db	"Erro: Nao foi possivel fazer a escrita do arquivo.", CR, LF, 0
 MsgCRLF				db	CR, LF, 0
 
@@ -86,7 +87,7 @@ Continua4:
 	
 TerminouArquivo:
 
-	call    procuraStart
+	call    criaNovoBuffer
 	mov		bx,FileHandleSrc	; Fecha arquivo origem
 	call	fclose
 	mov		bx,FileHandleDst	; Fecha arquivo destino
@@ -159,59 +160,77 @@ getChar endp
 ;Sai:   
 ;		NovoBuffer -> buffer com o conteudo do arquivo
 ;--------------------------------------------------------------------
-procuraStart    proc near
+criaNovoBuffer    proc near
 	lea bx, FileBuffer
 
-procuraStart_loop:
+criaNovoBuffer_loop:
 	mov 	dl, [bx]	; Carrega o primeiro caractere do buffer
 	
 	cmp 	dl, 0		; Verifica se o buffer está vazio
-	je 		procuraStart_ret	; Se estiver, retorna
+	je 		criaNovoBuffer_sem_start	; Se estiver, retorna
 
 	cmp     byte ptr dl, 'S'             ; Verifica se o caractere é 'S'
-	jne     procuraStart_end    ; Se não for, sai do loop
+	jne     criaNovoBuffer_end    ; Se não for, sai do loop
 
 	mov dl, [bx + 1]
 
 	cmp     byte ptr dl, 'T'  ; Verifica se o próximo caractere é 'T'
-	jne     procuraStart_end    ; Se não for, sai do loop
+	jne     criaNovoBuffer_end    ; Se não for, sai do loop
 
 	mov dl, [bx + 2]
 
 	cmp     byte ptr dl, 'A'; Verifica se o próximo caractere é 'A'
-	jne     procuraStart_end    ; Se não for, sai do loop
+	jne     criaNovoBuffer_end    ; Se não for, sai do loop
 
 	mov dl, [bx + 3]
 
 	cmp     byte ptr dl, 'R'; Verifica se o próximo caractere é 'R'
-	jne     procuraStart_end    ; Se não for, sai do loop
+	jne     criaNovoBuffer_end    ; Se não for, sai do loop
 
 	mov dl, [bx + 4]
 
 	cmp     byte ptr dl, 'T'; Verifica se o próximo caractere é 'T'
-	jne     procuraStart_end    ; Se não for, sai do loop
+	jne     criaNovoBuffer_end    ; Se não for, sai do loop
+	add     bx, 4
+	lea 	si, NewBuffer
 
-	mov dl, [bx + 5]	; Adicione essa linha para verificar o próximo caractere
+criaNovoBuffer_insere:
+	add     ax, si
+	inc 	bx
+	mov 	dl, [bx]
+	cmp     byte ptr dl, 0 ; 
+	je		criaNovoBuffer_sem_stop
+	cmp 	byte ptr dl, 'S' ; Verifica se o próximo caractere é 'S' de 'STOP'
+	je		criaNovoBuffer_print
 
-	cmp     byte ptr dl, 0 ; Verifica se o próximo caractere é nulo
-	jne     procuraStart_print   ; Imprime a mensagem
-
-procuraStart_end:
+	mov 	byte ptr [si], dl
+	inc 	si
+	
+	jmp     criaNovoBuffer_insere
+	
+criaNovoBuffer_end:
 	inc bx
-	jmp procuraStart_loop
+	jmp criaNovoBuffer_loop
 
-procuraStart_ret:
+criaNovoBuffer_sem_start:
 	cmp cx, 0
 	lea bx, MsgErroSemStart
 	call printf_s
 	.exit
 
-procuraStart_print:
-	lea bx, PalavraStart
+criaNovoBuffer_print:
+	dec NewBuffer
+	lea bx, NewBuffer
+
 	call printf_s
 	ret
 
-procuraStart    endp
+criaNovoBuffer_sem_stop:
+	lea bx, MsgErroSemStop
+	call printf_s
+	.exit
+
+criaNovoBuffer    endp
 
 ;--------------------------------------------------------------------
 ;Entra: BX -> file handle
