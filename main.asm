@@ -16,24 +16,38 @@ LF		equ		0ah
 	.data
 
 ContadorBuffer  dw 	0
-PalavraStart    db		"START", 0		; Palavra que indica o inicio da leitura
-PalavraStop     db		"STOP", 0		; Palavra que indica o fim da leitura
+NomeTesteAleatorio db 	"Teste", 0
 FileNameSrc		db		"IN.txt", 0		; Nome do arquivo a ser lido
 FileNameDst		db		"OUT.txt", 0	; Nome do arquivo a ser escrito
 FileHandleSrc	dw		0				; Handler do arquivo origem
 FileHandleDst	dw		0				; Handler do arquivo destino
 FileBuffer		db		2000 dup (?)	; Buffer de leitura/escrita do arquivo
 NewBuffer		db		2000 dup (?)	; Buffer de leitura/escrita do arquivo
+OutputBuffer    db 		2000 dup(?) 	; Espaço para os BarCodes (64 bytes)
 
-MsgPedeArquivoSrc	db	"Nome do arquivo origem: ", 0
-MsgPedeArquivoDst	db	"Nome do arquivo destino: ", 0
+
+BarCodeTable DB 101011b     ; 0
+	DB 1101011b    ; 1
+	DB 1001011b    ; 2
+	DB 1100101b    ; 3
+	DB 1011011b    ; 4
+	DB 1101101b    ; 5
+	DB 1001101b    ; 6
+	DB 1010011b    ; 7
+	DB 1101001b    ; 8
+	DB 1101101b    ; 9
+	DB 101101b     ; -
+	DB 1011001b    ; SS
+
+
+
 MsgErroOpenFile		db	"Erro: Nao foi possivel fazer a abertura do arquivo.", CR, LF, 0
 MsgErroCreateFile	db	"Erro: Nao foi possivel fazer a criacao do arquivo.", CR, LF, 0
 MsgErroReadFile		db	"Erro: Nao foi possível fazer a leitura do arquivo.", CR, LF, 0
 MsgErroSemStart		db	"Erro: Nao foi encontrado a palavra 'START' no arquivo.", CR, LF, 0
 MsgErroSemStop		db	"Erro: Nao foi encontrado a palavra 'STOP' no arquivo.", CR, LF, 0
 MsgErroWriteFile	db	"Erro: Nao foi possivel fazer a escrita do arquivo.", CR, LF, 0
-MsgCRLF				db	CR, LF, 0
+MsgErrorCaracterInvalido db "Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.", CR, LF, 0
 
 	.code
 	.startup
@@ -78,16 +92,21 @@ Continua4:
 	mov		bx,FileHandleDst
 	call	setChar
 	jnc		Continua2
-
-	mov		bx,FileHandleSrc		; Fecha arquivo origem
-	call	fclose
-	mov		bx,FileHandleDst		; Fecha arquivo destino
-	call	fclose
-	.exit	1
 	
 TerminouArquivo:
 
 	call    criaNovoBuffer
+
+	call    transformaEmBarcode
+
+
+	;mov		bx,FileHandleDst
+	;call	setChar
+	;jnc		Continua2
+
+
+
+
 	mov		bx,FileHandleSrc	; Fecha arquivo origem
 	call	fclose
 	mov		bx,FileHandleDst	; Fecha arquivo destino
@@ -155,7 +174,7 @@ getChar proc near
 getChar endp
 
 ;--------------------------------------------------------------------
-;Função que procura a palavra "START" no arquivo
+;Função que cria um novo buffer com o conteudo do arquivo que interessa
 ;		
 ;Sai:   
 ;		NovoBuffer -> buffer com o conteudo do arquivo
@@ -233,6 +252,152 @@ criaNovoBuffer_sem_stop:
 criaNovoBuffer    endp
 
 ;--------------------------------------------------------------------
+;Função que traduz cada caracter do novo buffer em um barcode 
+;		
+;Sai:   
+;		Buffer com dados em barcode
+;--------------------------------------------------------------------
+transformaEmBarcode proc near
+	mov     cx, 0
+	mov 	si, 0
+transformaEmBarcode_loop:
+	lea 	bx, NewBuffer	
+	mov     dl, [bx]
+
+
+	cmp     byte ptr dl, 0    ; Verifica se o buffer está vazio
+	je      transformaEmBarcode_fim_traducao    ; Se estiver, retorna
+
+	cmp     byte ptr dl, '0'    ; Verifica se o caractere é '0'
+	je      transformaEmBarcode_0    ; Se for, pula para a função que transforma em barcode
+
+	cmp     byte ptr dl, '1'    ; Verifica se o caractere é '1'
+	je      transformaEmBarcode_1    ; Se for, pula para a função que transforma em barcode
+
+	cmp     byte ptr dl, '2'    ; Verifica se o caractere é '2'
+	je      transformaEmBarcode_2    ; Se for, pula para a função que transforma em barcode
+
+	cmp     byte ptr dl, '3'    ; Verifica se o caractere é '3'
+	je      transformaEmBarcode_3    ; Se for, pula para a função que transforma em barcode
+
+	cmp     byte ptr dl, '4'    ; Verifica se o caractere é '4'
+	je      transformaEmBarcode_4    ; Se for, pula para a função que transforma em barcode
+
+	cmp     byte ptr dl, '5'    ; Verifica se o caractere é '5'
+	je      transformaEmBarcode_5    ; Se for, pula para a função que transforma em barcode
+
+	cmp     byte ptr dl, '6'    ; Verifica se o caractere é '6'
+	je      transformaEmBarcode_6    ; Se for, pula para a função que transforma em barcode
+
+	cmp     byte ptr dl, '7'    ; Verifica se o caractere é '7'
+	je      transformaEmBarcode_7    ; Se for, pula para a função que transforma em barcode
+
+	cmp     byte ptr dl, '8'    ; Verifica se o caractere é '8'
+	je      transformaEmBarcode_8    ; Se for, pula para a função que transforma em barcode
+
+	cmp     byte ptr dl, '9'    ; Verifica se o caractere é '9'
+	je      transformaEmBarcode_9    ; Se for, pula para a função que transforma em barcode
+
+	cmp     byte ptr dl, '-'    ; Verifica se o caractere é '-'
+	je      transformaEmBarcode_menos    ; Se for, pula para a função que transforma em barcode
+
+
+
+	jmp     transformaEmBarcode_erro_caractere_invalido
+
+transformaEmBarcode_erro_caractere_invalido:
+	lea     bx, MsgErrorCaracterInvalido
+	call    printf_s
+	.exit
+
+transformaEmBarcode_0:
+	mov     dl, BarCodeTable[0]
+	mov     [OutputBuffer + cx], dl
+	inc     cx
+	
+	jmp     transformaEmBarcode_loop
+
+transformaEmBarcode_1:
+	mov     dl, BarCodeTable[1]
+	mov     [OutputBuffer + cx], dl
+	inc     cx
+	
+	jmp     transformaEmBarcode_loop
+
+transformaEmBarcode_2:
+	mov     dl, BarCodeTable[2]
+	mov     [OutputBuffer + cx], dl
+	inc     cx
+	
+	jmp     transformaEmBarcode_loop
+
+transformaEmBarcode_3:
+	mov     dl, BarCodeTable[3]
+	mov     [OutputBuffer + cx], dl
+	inc     cx
+	
+	jmp     transformaEmBarcode_loop
+
+transformaEmBarcode_4:
+	mov     dl, BarCodeTable[4]
+	mov     [OutputBuffer + cx], dl
+	inc     cx
+	
+	jmp     transformaEmBarcode_loop
+
+transformaEmBarcode_5:
+	mov     dl, BarCodeTable[5]
+	mov     [OutputBuffer + cx], dl
+	inc     cx
+	
+	jmp     transformaEmBarcode_loop
+
+transformaEmBarcode_6:
+	mov     dl, BarCodeTable[6]
+	mov     [OutputBuffer + cx], dl
+	inc     cx
+	
+	jmp     transformaEmBarcode_loop
+
+transformaEmBarcode_7:
+	mov     dl, BarCodeTable[7]
+	mov     [OutputBuffer + cx], dl
+	inc     cx
+	
+	jmp     transformaEmBarcode_loop
+
+transformaEmBarcode_8:
+	mov     dl, BarCodeTable[8]
+	mov     [OutputBuffer + cx], dl
+	inc     cx
+	
+	jmp     transformaEmBarcode_loop
+
+transformaEmBarcode_9:
+	mov     dl, BarCodeTable[9]
+	mov     [OutputBuffer + cx], dl
+	inc     cx
+	
+	jmp     transformaEmBarcode_loop
+
+transformaEmBarcode_menos:
+	mov     dl, BarCodeTable[10]
+	mov     [OutputBuffer + cx], dl
+	inc     cx
+	
+	jmp     transformaEmBarcode_loop
+
+transformaEmBarcode_fim_traducao:
+	mov     dl, BarCodeTable[11]
+	mov     [OutputBuffer + cx], dl
+	inc     cx
+	
+
+	ret
+
+transformaEmBarcode endp
+
+;--------------------------------------------------------------------
 ;Entra: BX -> file handle
 ;       dl -> caractere
 ;Sai:   AX -> numero de caracteres escritos
@@ -264,7 +429,7 @@ printf_s	proc	near
 
 	inc		bx		
 	jmp		printf_s
-		
+
 ps_1:
 	ret
 printf_s	endp
