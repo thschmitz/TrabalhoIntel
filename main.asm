@@ -381,6 +381,13 @@ loop_coloca_valores_0:
 	jmp 	loop_coloca_valores_0
 
 loop_coloca_valores_0_acaba:
+	
+	cmp 	cx, 10
+	jg 		loop_coloca_valores_0_acaba_final
+
+	mov 	[si], '0'
+	inc 	si
+loop_coloca_valores_0_acaba_final:
 	pop 	bx
 	ret
 
