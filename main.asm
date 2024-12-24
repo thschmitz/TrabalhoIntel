@@ -280,12 +280,12 @@ criaNovoBuffer    endp
 ;--------------------------------------------------------------------
 transformaEmBarcode proc near
 	mov     cx, 0
-	mov 	si, 0
+	lea 	si, OutputBuffer
 	lea 	bx, NewBuffer
 	
-	mov     dl, 1011001b
-	mov     [OutputBuffer + cx], dl
-	inc     cx
+	;mov     dl, 1011001b
+	;mov     [si + cx], dl
+	;inc     cx
 
 transformaEmBarcode_loop:
 	mov     dl, [bx]
@@ -342,9 +342,29 @@ transformaEmBarcode_erro_caractere_invalido:
 	.exit
 
 transformaEmBarcode_0:
-    mov     dl, 101011b            ; Caractere '0' -> Código binário
-    mov     [OutputBuffer + cx], dl; Armazena no OutputBuffer
-    inc     cx                     ; Incrementa o índice
+    mov     dl, 101011b           ; Caractere '0' -> Código binário
+	
+loop_acha_primeiro_0:
+	shl	 dl, 1
+	jc loop_coloca_valores_0
+	jmp loop_acha_primeiro_0
+
+loop_coloca_valores_0:
+	mov  ax, 30h
+	adc  ax, 0
+
+	mov	 [si], ax
+	inc cx
+	inc si
+
+	cmp 	dl, 0
+	je  	loop_coloca_valores_0_acaba
+
+	shl 	dl, 1
+	jmp 	loop_coloca_valores_0
+
+loop_coloca_valores_0_acaba:
+	
     jmp     transformaEmBarcode_loop
 
 transformaEmBarcode_1:
