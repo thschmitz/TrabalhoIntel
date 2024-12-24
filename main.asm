@@ -283,9 +283,8 @@ transformaEmBarcode proc near
 	lea 	si, OutputBuffer
 	lea 	bx, NewBuffer
 	
-	;mov     dl, 1011001b
-	;mov     [si + cx], dl
-	;inc     cx
+	mov      cx, 11
+	call     transforma_em_barcode_exec
 
 transformaEmBarcode_loop:
 	mov     dl, [bx]
@@ -353,6 +352,10 @@ transformaEmBarcode_erro_caractere_invalido:
 	.exit
 
 transformaEmBarcode_codigo:
+	call transforma_em_barcode_exec
+	jmp transformaEmBarcode_loop
+
+transforma_em_barcode_exec:
 	push 	bx
 	lea 	bx, BarCodeTable
 	add 	bx, cx
@@ -379,12 +382,12 @@ loop_coloca_valores_0:
 
 loop_coloca_valores_0_acaba:
 	pop 	bx
-    jmp     transformaEmBarcode_loop
+	ret
 
 transformaEmBarcode_fim_traducao:
-    mov     dl, 1011001b           ; Código de finalização
-    mov     [OutputBuffer + cx], dl
-    inc     cx
+	mov      cx, 11
+	call transforma_em_barcode_exec
+
     ret
 
 
