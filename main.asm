@@ -301,38 +301,49 @@ transformaEmBarcode_loop:
 	cmp 	byte ptr dl, 10
 	je 		transformaEmBarcode_loop
 
+	mov 	cx, 0
 	cmp     byte ptr dl, '0'    ; Verifica se o caractere é '0'
-	je      transformaEmBarcode_0    ; Se for, pula para a função que transforma em barcode
+	je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
 
+	mov 	cx, 1
 	cmp     byte ptr dl, '1'    ; Verifica se o caractere é '1'
-	je      transformaEmBarcode_1    ; Se for, pula para a função que transforma em barcode
+	je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
 
+	mov 	cx, 2
 	cmp     byte ptr dl, '2'    ; Verifica se o caractere é '2'
-	je      transformaEmBarcode_2    ; Se for, pula para a função que transforma em barcode
+	je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
 
+	mov 	cx, 3
 	cmp     byte ptr dl, '3'    ; Verifica se o caractere é '3'
-	je      transformaEmBarcode_3    ; Se for, pula para a função que transforma em barcode
+	je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
 
+	mov 	cx, 4
 	cmp     byte ptr dl, '4'    ; Verifica se o caractere é '4'
-	je      transformaEmBarcode_4    ; Se for, pula para a função que transforma em barcode
+	je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
 
+	mov 	cx, 5
 	cmp     byte ptr dl, '5'    ; Verifica se o caractere é '5'
-	je      transformaEmBarcode_5    ; Se for, pula para a função que transforma em barcode
+	je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
 
+	mov 	cx, 6
 	cmp     byte ptr dl, '6'    ; Verifica se o caractere é '6'
-	je      transformaEmBarcode_6    ; Se for, pula para a função que transforma em barcode
+	je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
 
+	mov 	cx, 7
 	cmp     byte ptr dl, '7'    ; Verifica se o caractere é '7'
-	je      transformaEmBarcode_7    ; Se for, pula para a função que transforma em barcode
+	je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
 
+	mov 	cx, 8
 	cmp     byte ptr dl, '8'    ; Verifica se o caractere é '8'
-	je      transformaEmBarcode_8    ; Se for, pula para a função que transforma em barcode
+	je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
 
+	mov 	cx, 9
 	cmp     byte ptr dl, '9'    ; Verifica se o caractere é '9'
-	je      transformaEmBarcode_9    ; Se for, pula para a função que transforma em barcode
+	je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
 
+	mov 	cx, 10
 	cmp     byte ptr dl, '-'    ; Verifica se o caractere é '-'
-	je      transformaEmBarcode_menos    ; Se for, pula para a função que transforma em barcode
+	je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
 
 	jmp     transformaEmBarcode_erro_caractere_invalido
 
@@ -341,8 +352,11 @@ transformaEmBarcode_erro_caractere_invalido:
 	call    printf_s
 	.exit
 
-transformaEmBarcode_0:
-    mov     dl, 101011b           ; Caractere '0' -> Código binário
+transformaEmBarcode_codigo:
+	push 	bx
+	lea 	bx, BarCodeTable
+	add 	bx, cx
+	mov 	dl, [bx]
 	
 loop_acha_primeiro_0:
 	shl	 dl, 1
@@ -364,67 +378,7 @@ loop_coloca_valores_0:
 	jmp 	loop_coloca_valores_0
 
 loop_coloca_valores_0_acaba:
-	
-    jmp     transformaEmBarcode_loop
-
-transformaEmBarcode_1:
-    mov     dl, 1101011b           ; Caractere '1' -> Código binário
-    mov     [OutputBuffer + cx], dl
-    inc     cx
-    jmp     transformaEmBarcode_loop
-
-transformaEmBarcode_2:
-    mov     dl, 1001011b           ; Caractere '2' -> Código binário
-    mov     [OutputBuffer + cx], dl
-    inc     cx
-    jmp     transformaEmBarcode_loop
-
-transformaEmBarcode_3:
-    mov     dl, 1100101b           ; Caractere '3' -> Código binário
-    mov     [OutputBuffer + cx], dl
-    inc     cx
-    jmp     transformaEmBarcode_loop
-
-transformaEmBarcode_4:
-    mov     dl, 1011011b           ; Caractere '4' -> Código binário
-    mov     [OutputBuffer + cx], dl
-    inc     cx
-    jmp     transformaEmBarcode_loop
-
-transformaEmBarcode_5:
-    mov     dl, 1101101b           ; Caractere '5' -> Código binário
-    mov     [OutputBuffer + cx], dl
-    inc     cx
-    jmp     transformaEmBarcode_loop
-
-transformaEmBarcode_6:
-    mov     dl, 1001101b           ; Caractere '6' -> Código binário
-    mov     [OutputBuffer + cx], dl
-    inc     cx
-    jmp     transformaEmBarcode_loop
-
-transformaEmBarcode_7:
-    mov     dl, 1010011b           ; Caractere '7' -> Código binário
-    mov     [OutputBuffer + cx], dl
-    inc     cx
-    jmp     transformaEmBarcode_loop
-
-transformaEmBarcode_8:
-    mov     dl, 1101001b           ; Caractere '8' -> Código binário
-    mov     [OutputBuffer + cx], dl
-    inc     cx
-    jmp     transformaEmBarcode_loop
-
-transformaEmBarcode_9:
-    mov     dl, 1101101b           ; Caractere '9' -> Código binário
-    mov     [OutputBuffer + cx], dl
-    inc     cx
-    jmp     transformaEmBarcode_loop
-
-transformaEmBarcode_menos:
-    mov     dl, 101101b            ; Caractere '-' -> Código binário
-    mov     [OutputBuffer + cx], dl
-    inc     cx
+	pop 	bx
     jmp     transformaEmBarcode_loop
 
 transformaEmBarcode_fim_traducao:
