@@ -97,7 +97,20 @@ TerminouArquivo:
 
 	call    criaNovoBuffer
 
+	lea 	si, OutputBuffer
+	lea 	bx, NewBuffer
+loop_transformacoes:
 	call    transformaEmBarcode
+	;inc 	si
+	mov 	[si], 10
+	inc 	si
+	cmp 	byte ptr [bx], 0
+	jne 	loop_transformacoes
+
+	
+
+
+	
 
 
 	lea 	bx, OutputBuffer
@@ -214,12 +227,12 @@ criaNovoBuffer_loop:
 criaNovoBuffer_loop2:
 	inc bx
 	mov 	dl, [bx]
-	cmp     byte ptr dl, 0Ah ; CR (Carriage Return)
-	je criaNovoBuffer_loop2
-	cmp     byte ptr dl, 0Dh ; LF (Line Feed)
-	je criaNovoBuffer_loop2
+	;cmp     byte ptr dl, 0Ah ; CR (Carriage Return)
+	;je criaNovoBuffer_loop2
+	;cmp     byte ptr dl, 0Dh ; LF (Line Feed)
+	;je criaNovoBuffer_loop2
 
-	dec bx
+	;dec bx
 criaNovoBuffer_insere:
 	add     ax, si
 	inc 	bx
@@ -280,8 +293,7 @@ criaNovoBuffer    endp
 ;--------------------------------------------------------------------
 transformaEmBarcode proc near
 	mov     cx, 0
-	lea 	si, OutputBuffer
-	lea 	bx, NewBuffer
+
 	
 	mov      cx, 11
 	call     transforma_em_barcode_exec
@@ -295,10 +307,10 @@ transformaEmBarcode_loop:
 	je      transformaEmBarcode_fim_traducao    ; Se estiver, retorna
 
 	cmp 	byte ptr dl, 13
-	je 		transformaEmBarcode_loop
+	je 		transformaEmBarcode_fim_traducao
 
 	cmp 	byte ptr dl, 10
-	je 		transformaEmBarcode_loop
+	je 		transformaEmBarcode_fim_traducao
 
 	mov 	cx, 0
 	cmp     byte ptr dl, '0'    ; Verifica se o caractere é '0'

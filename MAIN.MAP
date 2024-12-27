@@ -1,8 +1,8 @@
 
  Start  Stop   Length Name                   Class
- 00000H 00254H 00255H _TEXT                  CODE
- 00256H 01B7DH 01928H _DATA                  DATA
- 01B80H 01F7FH 00400H STACK                  STACK
+ 00000H 0025AH 0025BH _TEXT                  CODE
+ 0025CH 01B83H 01928H _DATA                  DATA
+ 01B90H 01F8FH 00400H STACK                  STACK
 
  Origin   Group
  0025:0   DGROUP
