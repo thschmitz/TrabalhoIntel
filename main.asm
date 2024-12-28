@@ -55,7 +55,7 @@ MsgErrorCaracterInvalido db "Erro: Nao foi possivel fazer a traducao de um carac
 	lea		dx,FileNameSrc
 	call	fopen
 	mov		FileHandleSrc,bx
-	jnc		Continua2
+	jnc		Continua1
 	lea		bx, MsgErroOpenFile
 	call	printf_s
 	.exit	1
@@ -87,34 +87,55 @@ Continua3:
 	cmp		ax,0
 	jz		TerminouArquivo
 	jmp 	Continua2
-Continua4:
-
-	mov		bx,FileHandleDst
-	call	setChar
-	jnc		Continua2
 	
 TerminouArquivo:
-
 	call    criaNovoBuffer
 
 	lea 	si, OutputBuffer
 	lea 	bx, NewBuffer
 loop_transformacoes:
 	call    transformaEmBarcode
-	;inc 	si
 	mov 	[si], 10
 	inc 	si
 	cmp 	byte ptr [bx], 0
 	jne 	loop_transformacoes
 
+
+
+
+
+
+
+
+
+
+
+
+	lea 	si, OutputBuffer
+	mov 	bx, FileHandleDst
+	mov 	cx, 0
+loop_escrever_output:
+	mov 	dl, [si]
+	cmp 	byte ptr dl, 0
+	je 		loop_escrever_output_fim
+	push 	bx
+	call 	setChar
+	pop 	bx
+	inc 	si
+	jmp 	loop_escrever_output
 	
-
-
-	
-
-
+loop_escrever_output_fim:
 	lea 	bx, OutputBuffer
 	call 	printf_s
+
+
+
+
+
+
+
+
+
 
 
 
