@@ -30,6 +30,8 @@ Divisor10 		dw 		10
 ChecksumBuffer 	db 		2000 dup(?) 	; Espaço para os Checksums (64 bytes)
 Pesochecksum 	db		0
 ChecksumTotal   dw 		0
+Checksum 		dw		0
+ColocaSeparador	db		1
 MsgNewLine          db CR, LF, 0 ; Caractere para nova linha
 
 BarCodeTable DB 101011b     ; 0
@@ -407,7 +409,7 @@ transforma_em_barcode_exec:
 	lea 	bx, BarCodeTable
 	add 	bx, cx
 	mov 	dl, [bx]
-	
+	pop bx
 loop_acha_primeiro_0:
 	shl	 dl, 1
 	jc loop_coloca_valores_0
@@ -418,7 +420,6 @@ loop_coloca_valores_0:
 	adc  ax, 0
 
 	mov	 [si], ax
-	inc cx
 	inc si
 
 	cmp 	dl, 0
@@ -431,11 +432,29 @@ loop_coloca_valores_0_acaba:
 	
 	cmp 	cx, 10
 	jg 		loop_coloca_valores_0_acaba_final
+	push bx
+	push dx
+	mov 	dl, [bx]
 
+	cmp 	ColocaSeparador, 0
+	je  	pula_coloca_zero
+	
+	cmp     byte ptr dl, 0    ; Verifica se o buffer está vazio
+	je      pula_coloca_zero    ; Se estiver, retorna
+
+	cmp 	byte ptr dl, 13
+	je 		pula_coloca_zero
+
+	cmp 	byte ptr dl, 10
+	je 		pula_coloca_zero
+	
 	mov 	[si], '0'
 	inc 	si
+pula_coloca_zero:
+	pop dx
+	pop bx
+	
 loop_coloca_valores_0_acaba_final:
-	pop 	bx
 	ret
 
 transformaEmBarcode_fim_traducao:
@@ -450,7 +469,7 @@ transformaEmBarcode_fim_traducao:
     mov     cl, 0                 ; Zera CL (contador de caracteres)
     lea     di, ChecksumBuffer    ; Ponteiro para o início do buffer
 loop_conta_palavras_checksum:
-    cmp     byte ptr [di], 0      ; Verifica o final da palavra
+    cmp     byte ptr [di], 0AH      ; Verifica o final da palavra
     je      loop_conta_palavras_end
     inc     di                    ; Avança para o próximo caractere
     inc     cl                    ; Incrementa o comprimento
@@ -464,7 +483,6 @@ loop_conta_palavras_end:
     jz      erro_linha_em_branco
 
     mov     ChecksumTotal, 0      ; Zera o ChecksumTotal
-	dec	 	Pesochecksum	
 loop_calcula_checksum:
     mov     al, [si]              ; Carrega o próximo byte do ChecksumBuffer em AL
     cmp     al, 0                 ; Verifica se chegou ao final do buffer
@@ -491,11 +509,11 @@ loop_calcula_checksum:
     add     ChecksumTotal, ax
 
     ; Diagnóstico: imprime o caractere processado
-    mov     dl, [si]
-    mov     ah, 2                 ; Interrupção do DOS para imprimir caractere
-    int     21h
-    lea     bx, MsgNewLine
-    call    printf_s
+    ;mov     dl, [si]
+    ;mov     ah, 2                 ; Interrupção do DOS para imprimir caractere
+    ;int     21h
+    ;lea     bx, MsgNewLine
+    ;call    printf_s
 
 ignora_caractere:
     ; Ignora o caractere e avança no buffer
@@ -505,10 +523,38 @@ ignora_caractere:
     jnz     loop_calcula_checksum
 
 checksum_done:
-    mov     ax, ChecksumTotal     ; Carrega o checksum em AX
-    call    print_number          ; Imprime o checksum
-    lea     bx, MsgNewLine        ; Nova linha após exibir o checksum
+    ; Salva registradores na pilha
+    push    ax
+    push    bx
+    push    cx
+    push    dx
+
+    ; Calcula o resto da divisão do ChecksumTotal por 11
+    mov     ax, ChecksumTotal      ; Carrega o ChecksumTotal em AX
+    mov     bl, 11                 ; Define o divisor como 11
+    div     bl                     ; AL = Quociente, AH = Resto
+
+    ; AH contém o resto da divisão
+    mov     cl, ah                 ; Move o resto para CL
+    xor     ah, ah                 ; Limpa AH para evitar resíduos
+
+
+    ; Imprime o valor do resto (divisão do checksum por 11)
+    push    ax                     ; Salva AX antes da exibição
+    mov     ax, cx                 ; Move o valor do resto para AX
+	mov 	Checksum, ax
+    call    print_number           ; Imprime o valor do checksum dividido por 11
+    lea     bx, MsgNewLine         ; Prepara nova linha
     call    printf_s
+    pop     ax                     ; Restaura AX
+
+    ; Restaura registradores
+    pop     dx
+    pop     cx
+    pop     bx
+    pop     ax
+
+    ; Continua para a próxima etapa
     jmp     termina_calculo_checksum
 
 erro_caractere_invalido:
@@ -521,14 +567,24 @@ erro_linha_em_branco:
     ; Mensagem de erro para linha em branco
     lea     bx, MsgLinhaEmBranco
     call    printf_s
+	lea 	bx, MsgNewLine
+	call    printf_s
+	jmp     termina_calculo_checksum
 
 termina_calculo_checksum:
-    ; Restaura os registradores salvos
+    ; Restaura registradores salvos e retorna
     pop     ax
     pop     si
     pop     di
     pop     bx
     pop     cx
+	
+	mov 	ColocaSeparador, 0
+	mov 	cx, Checksum
+	call transforma_em_barcode_exec
+	mov 	ColocaSeparador, 1
+	mov      cx, 11
+	call     transforma_em_barcode_exec
     ret
 
 
