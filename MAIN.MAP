@@ -1,7 +1,7 @@
 
  Start  Stop   Length Name                   Class
- 00000H 00338H 00339H _TEXT                  CODE
- 0033AH 0247BH 02142H _DATA                  DATA
+ 00000H 0033CH 0033DH _TEXT                  CODE
+ 0033EH 0247FH 02142H _DATA                  DATA
  02480H 0287FH 00400H STACK                  STACK
 
  Origin   Group

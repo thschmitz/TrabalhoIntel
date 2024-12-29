@@ -464,7 +464,7 @@ loop_conta_palavras_end:
     jz      erro_linha_em_branco
 
     mov     ChecksumTotal, 0      ; Zera o ChecksumTotal
-
+	dec	 	Pesochecksum	
 loop_calcula_checksum:
     mov     al, [si]              ; Carrega o próximo byte do ChecksumBuffer em AL
     cmp     al, 0                 ; Verifica se chegou ao final do buffer
