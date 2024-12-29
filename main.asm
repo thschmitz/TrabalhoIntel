@@ -26,6 +26,12 @@ NewBuffer		db		2000 dup (?)	; Buffer de leitura/escrita do arquivo
 OutputBuffer    db 		2000 dup(?) 	; Espaço para os BarCodes (64 bytes)
 
 
+Divisor10 		dw 		10
+ChecksumBuffer 	db 		2000 dup(?) 	; Espaço para os Checksums (64 bytes)
+Pesochecksum 	db		0
+ChecksumTotal   dw 		0
+MsgNewLine          db CR, LF, 0 ; Caractere para nova linha
+
 BarCodeTable DB 101011b     ; 0
 	DB 1101011b    ; 1
 	DB 1001011b    ; 2
@@ -48,6 +54,7 @@ MsgErroSemStart		db	"Erro: Nao foi encontrado a palavra 'START' no arquivo.", CR
 MsgErroSemStop		db	"Erro: Nao foi encontrado a palavra 'STOP' no arquivo.", CR, LF, 0
 MsgErroWriteFile	db	"Erro: Nao foi possivel fazer a escrita do arquivo.", CR, LF, 0
 MsgErrorCaracterInvalido db "Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.", CR, LF, 0
+MsgLinhaEmBranco	db 	"Erro: Nao foi possivel fazer a transcricao de uma linha em branco."
 
 	.code
 	.startup
@@ -319,10 +326,17 @@ transformaEmBarcode proc near
 	mov      cx, 11
 	call     transforma_em_barcode_exec
 
+	mov 	dx, ds
+	mov 	es, dx
+	mov 	di, 0
+	lea 	di, ChecksumBuffer
+    xor     ax, ax                ; Zera AX para evitar resíduos
+
 transformaEmBarcode_loop:
 	mov     dl, [bx]
-
+	mov 	[di], dl
 	inc bx
+	inc di
 
 	cmp     byte ptr dl, 0    ; Verifica se o buffer está vazio
 	je      transformaEmBarcode_fim_traducao    ; Se estiver, retorna
@@ -425,13 +439,175 @@ loop_coloca_valores_0_acaba_final:
 	ret
 
 transformaEmBarcode_fim_traducao:
-	mov      cx, 11
-	call transforma_em_barcode_exec
+    mov     byte ptr [di], 0      ; Adiciona terminador null no final do ChecksumBuffer
+    push    cx                    ; Salva CX
+    push    bx
+    push    di
+    push    si
+    push    ax
 
+    ; Calcula o comprimento da palavra
+    mov     cl, 0                 ; Zera CL (contador de caracteres)
+    lea     di, ChecksumBuffer    ; Ponteiro para o início do buffer
+loop_conta_palavras_checksum:
+    cmp     byte ptr [di], 0      ; Verifica o final da palavra
+    je      loop_conta_palavras_end
+    inc     di                    ; Avança para o próximo caractere
+    inc     cl                    ; Incrementa o comprimento
+    jmp     loop_conta_palavras_checksum
+
+loop_conta_palavras_end:
+    mov     Pesochecksum, cl      ; Define o peso inicial como o comprimento da palavra
+
+    ; Ponteiro para o início do ChecksumBuffer
+    lea     si, ChecksumBuffer    ; SI aponta para o início do buffer
+    cmp     Pesochecksum, 0
+    jz      erro_linha_em_branco
+
+    mov     ChecksumTotal, 0      ; Zera o ChecksumTotal
+
+loop_calcula_checksum:
+    ; Carrega o próximo byte do ChecksumBuffer em AL
+    mov     al, [si]
+    cmp     al, 0                 ; Verifica se chegou ao final do buffer
+    je      checksum_done
+
+    ; Ignora caracteres CR (0D) e LF (0A)
+    cmp     al, 0Dh               ; Verifica se é CR
+    je      ignora_caractere
+    cmp     al, 0Ah               ; Verifica se é LF
+    je      ignora_caractere
+
+    ; Verificação de caractere numérico ou permitido
+    cmp     al, '-'               ; Verifica se é o caractere '-'
+    je      pulado_verificacao_numerica
+    cmp     al, '0'               ; Verifica se é um caractere numérico
+    jb      erro_caractere_invalido
+    cmp     al, '9'               ; Verifica se é um caractere numérico
+    ja      erro_caractere_invalido
+
+pulado_verificacao_numerica:
+    sub     al, '0'               ; Converte de ASCII para valor numérico
+    mov     ah, 0                 ; Garante que AH está zerado
+    mul     Pesochecksum          ; Multiplica AL pelo peso
+    add     ChecksumTotal, ax     ; Adiciona ao ChecksumTotal
+
+ignora_caractere:
+    ; Ignora o caractere e avança no buffer
+    inc     si                    ; Avança para o próximo caractere no buffer
+    dec     Pesochecksum          ; Reduz o peso
+    cmp     Pesochecksum, 0
+    jnz     loop_calcula_checksum
+
+checksum_done:
+    ; Exibe o checksum total calculado
+    mov     ax, ChecksumTotal     ; Carrega o checksum total em AX
+    call    print_number          ; Imprime o checksum total como número
+    lea     bx, MsgNewLine        ; Nova linha após exibir o checksum
+    call    printf_s
+    jmp     termina_calculo_checksum
+
+erro_caractere_invalido:
+    ; Mensagem de erro para caracteres inválidos
+    lea     bx, MsgErrorCaracterInvalido
+    call    printf_s
+    jmp     termina_calculo_checksum
+
+erro_linha_em_branco:
+    ; Mensagem de erro para linha em branco
+    lea     bx, MsgErroSemStart
+    call    printf_s
+
+termina_calculo_checksum:
+    ; Restaura os registradores salvos
+    pop     ax
+    pop     si
+    pop     di
+    pop     bx
+    pop     cx
     ret
 
-
 transformaEmBarcode endp
+
+
+;
+;--------------------------------------------------------------------
+;Função:Converte um ASCII-DECIMAL para HEXA
+;Entra: (S) -> DS:BX -> Ponteiro para o string de origem
+;Sai:	(A) -> AX -> Valor "Hex" resultante
+;Algoritmo:
+;	A = 0;
+;	while (*S!='\0') {
+;		A = 10 * A + (*S - '0')
+;		++S;
+;	}
+;	return
+;--------------------------------------------------------------------
+atoi	proc near
+
+		; A = 0;
+		mov		ax,0
+		
+atoi_2:
+		; while (*S!='\0') {
+		cmp		byte ptr[bx], 0
+		jz		atoi_1
+
+		; 	A = 10 * A
+		mov		cx,10
+		mul		cx
+
+		; 	A = A + *S
+		mov		ch,0
+		mov		cl,[bx]
+		add		ax,cx
+
+		; 	A = A - '0'
+		sub		ax,'0'
+
+		; 	++S
+		inc		bx
+		
+		;}
+		jmp		atoi_2
+
+atoi_1:
+		; return
+		ret
+
+atoi	endp
+
+
+;--------------------------------------------------------------------
+; Função para imprimir um número na tela
+; Entrada: AX contém o número a ser impresso
+;--------------------------------------------------------------------
+print_number proc near
+    push    ax                    ; Salva AX
+    push    dx                    ; Salva DX
+    xor     cx, cx                ; Zera CX (contador de dígitos)
+
+    ; Calcula os dígitos do número (armazenados na pilha)
+print_number_loop:
+    xor     dx, dx                ; Zera DX
+    div     word ptr Divisor10    ; Divide AX por 10 (quociente em AX, resto em DX)
+    push    dx                    ; Armazena o dígito na pilha
+    inc     cx                    ; Incrementa o contador de dígitos
+    test    ax, ax                ; Verifica se o quociente é 0
+    jnz     print_number_loop     ; Continua se ainda houver dígitos
+
+    ; Imprime os dígitos na ordem correta
+print_number_output:
+    pop     dx                    ; Recupera o próximo dígito
+    add     dl, '0'               ; Converte o dígito para ASCII
+    mov     ah, 2                 ; Função para imprimir caractere
+    int     21h                   ; Chama a interrupção do DOS
+    loop    print_number_output   ; Continua até imprimir todos os dígitos
+
+    pop     dx                    ; Restaura DX
+    pop     ax                    ; Restaura AX
+    ret
+print_number endp
 
 ;--------------------------------------------------------------------
 ;Entra: BX -> file handle
