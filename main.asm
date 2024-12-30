@@ -56,7 +56,7 @@ MsgErroSemStart		db	"Erro: Nao foi encontrado a palavra 'START' no arquivo.", CR
 MsgErroSemStop		db	"Erro: Nao foi encontrado a palavra 'STOP' no arquivo.", CR, LF, 0
 MsgErroWriteFile	db	"Erro: Nao foi possivel fazer a escrita do arquivo.", CR, LF, 0
 MsgErrorCaracterInvalido db "Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.", CR, LF, 0
-MsgLinhaEmBranco	db 	"Erro: Nao foi possivel fazer a transcricao de uma linha em branco."
+MsgLinhaEmBranco	db 	"Erro: Nao foi possivel fazer a transcricao de uma linha em branco.", CR, LF, 0
 
 	.code
 	.startup
@@ -438,7 +438,7 @@ loop_coloca_valores_0_acaba:
 
 	cmp 	ColocaSeparador, 0
 	je  	pula_coloca_zero
-	
+
 	cmp     byte ptr dl, 0    ; Verifica se o buffer está vazio
 	je      pula_coloca_zero    ; Se estiver, retorna
 
@@ -480,7 +480,7 @@ loop_conta_palavras_end:
 
     lea     si, ChecksumBuffer    ; Ponteiro para o início do buffer
     cmp     Pesochecksum, 0
-    jz      erro_linha_em_branco
+    jz      erro_linha_vazia
 
     mov     ChecksumTotal, 0      ; Zera o ChecksumTotal
 loop_calcula_checksum:
@@ -495,13 +495,21 @@ loop_calcula_checksum:
     je      ignora_caractere
 
     ; Verifica se é numérico
-    cmp     al, '0'
-    jb      ignora_caractere
-    cmp     al, '9'
-    ja      ignora_caractere
+    ;cmp     al, '0'
+    ;jb      erro_linha_vazia
+    ;cmp     al, '9'
+    ;ja      erro_linha_vazia
 
     ; Converte o caractere numérico de ASCII para número
+	cmp 	al, '-'
+	je		coloca_valor_correto_travessao
     sub     al, '0'               ; Converte de ASCII para número
+	jmp 	nao_eh_travessao
+
+coloca_valor_correto_travessao:
+	mov 	al, 10
+
+nao_eh_travessao:
     mov     ah, 0                 ; Garante que AH está zerado
     mul     Pesochecksum          ; Multiplica pelo peso
 
@@ -557,41 +565,80 @@ checksum_done:
     ; Continua para a próxima etapa
     jmp     termina_calculo_checksum
 
-erro_caractere_invalido:
-    ; Mensagem de erro para caracteres inválidos
-    lea     bx, MsgErrorCaracterInvalido
-    call    printf_s
-    jmp     termina_calculo_checksum
 
-erro_linha_em_branco:
-    ; Mensagem de erro para linha em branco
-    lea     bx, MsgLinhaEmBranco
-    call    printf_s
-	lea 	bx, MsgNewLine
-	call    printf_s
-	jmp     termina_calculo_checksum
+erro_linha_vazia:
 
-termina_calculo_checksum:
-    ; Restaura registradores salvos e retorna
-    pop     ax
+	pop     ax
     pop     si
     pop     di
     pop     bx
     pop     cx
-	
+
+	sub 	si, 7 ; Apagar o SS inicial que sempre é colocado, independentemente se checksum é 0 ou não.
+
+	lea 	di, MsgLinhaEmBranco
+	call 	coloca_erro_no_buffer
+
+
+
+	jmp 	return_transformacao
+
+erro_caracter_invalido:
+
+	sub 	si, 7 ; Apagar o SS inicial que sempre é colocado, independentemente se checksum é 0 ou não.
+
+	lea 	di, MsgErrorCaracterInvalido
+	call 	coloca_erro_no_buffer
+
+
+
+	jmp 	return_transformacao
+
+termina_calculo_checksum:
+    ; Restaura registradores salvos e retorna
+
+	pop     ax
+    pop     si
+    pop     di
+    pop     bx
+    pop     cx
+
 	mov 	ColocaSeparador, 0
 	mov 	cx, Checksum
-	call transforma_em_barcode_exec
+	call 	transforma_em_barcode_exec
+
+
 	mov 	ColocaSeparador, 1
 	mov      cx, 11
 	call     transforma_em_barcode_exec
+
+return_transformacao:
+
     ret
 
 
 transformaEmBarcode endp
 
+;--------------------------------------------------------------------
+;Função: Coloca string de erro no buffer do arquivo
+;Entra: (S) -> SI -> aponta para o local do buffer
+;Sai:	(A) -> DI -> aponta para o inicio da string
+;--------------------------------------------------------------------
+coloca_erro_no_buffer 	proc near
+loop_percorre_string:
+	mov		dl, [di]
 
-;
+	mov 	[si], dl
+
+	inc 	si
+	inc 	di
+
+	cmp 	dl, 0
+	jne 	loop_percorre_string
+
+coloca_erro_no_buffer endp
+
+
 ;--------------------------------------------------------------------
 ;Função:Converte um ASCII-DECIMAL para HEXA
 ;Entra: (S) -> DS:BX -> Ponteiro para o string de origem
