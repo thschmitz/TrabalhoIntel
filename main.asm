@@ -100,8 +100,18 @@ Continua3:
 TerminouArquivo:
 	call    criaNovoBuffer
 
+
+
+
+
+
+
+
+
 	lea 	si, OutputBuffer
 	lea 	bx, NewBuffer
+
+
 loop_transformacoes:
 	call    transformaEmBarcode
 	mov 	[si], 10
@@ -322,9 +332,6 @@ criaNovoBuffer    endp
 ;		Buffer com dados em barcode
 ;--------------------------------------------------------------------
 transformaEmBarcode proc near
-	mov     cx, 0
-
-	
 	mov      cx, 11
 	call     transforma_em_barcode_exec
 
@@ -396,9 +403,22 @@ transformaEmBarcode_loop:
 	jmp     transformaEmBarcode_erro_caractere_invalido
 
 transformaEmBarcode_erro_caractere_invalido:
-	lea     bx, MsgErrorCaracterInvalido
-	call    printf_s
-	.exit
+loop_volta_inicio_linha:
+	sub si, 1
+	mov dl, [si]
+
+	cmp dl, 0AH
+	je 	colocar_mensagem_erro_caractere_invalido
+
+	cmp dl, 0DH
+	je colocar_mensagem_erro_caractere_invalido
+
+	jmp loop_volta_inicio_linha
+
+colocar_mensagem_erro_caractere_invalido:
+	inc si
+
+	jmp erro_caracter_invalido
 
 transformaEmBarcode_codigo:
 	call transforma_em_barcode_exec
@@ -585,8 +605,6 @@ erro_linha_vazia:
 
 erro_caracter_invalido:
 
-	sub 	si, 7 ; Apagar o SS inicial que sempre é colocado, independentemente se checksum é 0 ou não.
-
 	lea 	di, MsgErrorCaracterInvalido
 	call 	coloca_erro_no_buffer
 
@@ -613,7 +631,6 @@ termina_calculo_checksum:
 	call     transforma_em_barcode_exec
 
 return_transformacao:
-
     ret
 
 
