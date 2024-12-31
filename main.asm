@@ -24,7 +24,6 @@ FileHandleDst	dw		0				; Handler do arquivo destino
 FileBuffer		db		2000 dup (?)	; Buffer de leitura/escrita do arquivo
 NewBuffer		db		2000 dup (?)	; Buffer de leitura/escrita do arquivo
 OutputBuffer    db 		2000 dup(?) 	; Espaço para os BarCodes (64 bytes)
-Erro 			db		0
 
 Divisor10 		dw 		10
 ChecksumBuffer 	db 		2000 dup(?) 	; Espaço para os Checksums (64 bytes)
@@ -604,7 +603,7 @@ erro_linha_vazia:
 	pop di
 
 
-	ret
+	jmp return_transformacao
 
 erro_caracter_invalido:
 	push di
@@ -612,7 +611,7 @@ erro_caracter_invalido:
 	call 	coloca_erro_no_buffer
 	pop di
 	
-	ret
+	jmp return_transformacao
 
 termina_calculo_checksum:
     ; Restaura registradores salvos e retorna
@@ -655,6 +654,7 @@ loop_percorre_string:
 	cmp 	dl, 0
 	jne 	loop_percorre_string
 
+	ret
 coloca_erro_no_buffer endp
 
 
