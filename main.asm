@@ -24,7 +24,7 @@ FileHandleDst	dw		0				; Handler do arquivo destino
 FileBuffer		db		2000 dup (?)	; Buffer de leitura/escrita do arquivo
 NewBuffer		db		2000 dup (?)	; Buffer de leitura/escrita do arquivo
 OutputBuffer    db 		2000 dup(?) 	; Espaço para os BarCodes (64 bytes)
-
+Erro 			db		0
 
 Divisor10 		dw 		10
 ChecksumBuffer 	db 		2000 dup(?) 	; Espaço para os Checksums (64 bytes)
@@ -114,6 +114,8 @@ TerminouArquivo:
 
 loop_transformacoes:
 	call    transformaEmBarcode
+
+
 	mov 	[si], 10
 	inc 	si
 	cmp 	byte ptr [bx], 0
@@ -404,21 +406,21 @@ transformaEmBarcode_loop:
 
 transformaEmBarcode_erro_caractere_invalido:
 loop_volta_inicio_linha:
+    
 	sub si, 1
 	mov dl, [si]
 
+	lea dx, OutputBuffer
+    cmp si, dx
+    je  erro_caracter_invalido
+
 	cmp dl, 0AH
-	je 	colocar_mensagem_erro_caractere_invalido
+	je 	erro_caracter_invalido
 
 	cmp dl, 0DH
-	je colocar_mensagem_erro_caractere_invalido
+	je 	erro_caracter_invalido
 
 	jmp loop_volta_inicio_linha
-
-colocar_mensagem_erro_caractere_invalido:
-	inc si
-
-	jmp erro_caracter_invalido
 
 transformaEmBarcode_codigo:
 	call transforma_em_barcode_exec
@@ -430,12 +432,12 @@ transforma_em_barcode_exec:
 	add 	bx, cx
 	mov 	dl, [bx]
 	pop bx
-loop_acha_primeiro_0:
+loop_acha_primeiro:
 	shl	 dl, 1
-	jc loop_coloca_valores_0
-	jmp loop_acha_primeiro_0
+	jc loop_coloca_valores
+	jmp loop_acha_primeiro
 
-loop_coloca_valores_0:
+loop_coloca_valores:
 	mov  ax, 30h
 	adc  ax, 0
 
@@ -443,15 +445,15 @@ loop_coloca_valores_0:
 	inc si
 
 	cmp 	dl, 0
-	je  	loop_coloca_valores_0_acaba
+	je  	loop_coloca_valores_acaba
 
 	shl 	dl, 1
-	jmp 	loop_coloca_valores_0
+	jmp 	loop_coloca_valores
 
-loop_coloca_valores_0_acaba:
+loop_coloca_valores_acaba:
 	
 	cmp 	cx, 10
-	jg 		loop_coloca_valores_0_acaba_final
+	jg 		loop_coloca_valores_acaba_final
 	push bx
 	push dx
 	mov 	dl, [bx]
@@ -474,10 +476,10 @@ pula_coloca_zero:
 	pop dx
 	pop bx
 	
-loop_coloca_valores_0_acaba_final:
+loop_coloca_valores_acaba_final:
 	ret
 
-transformaEmBarcode_fim_traducao:
+transformaEmBarcode_fim_traducao: 	
     mov     byte ptr [di], 0      ; Adiciona terminador null no final do ChecksumBuffer
     push    cx                    ; Salva CX
     push    bx
@@ -497,10 +499,10 @@ loop_conta_palavras_checksum:
 
 loop_conta_palavras_end:
     mov     Pesochecksum, cl      ; Define o peso inicial como o comprimento da palavra
-
-    lea     si, ChecksumBuffer    ; Ponteiro para o início do buffer
     cmp     Pesochecksum, 0
     jz      erro_linha_vazia
+
+    lea     si, ChecksumBuffer    ; Ponteiro para o início do buffer
 
     mov     ChecksumTotal, 0      ; Zera o ChecksumTotal
 loop_calcula_checksum:
@@ -596,21 +598,21 @@ erro_linha_vazia:
 
 	sub 	si, 7 ; Apagar o SS inicial que sempre é colocado, independentemente se checksum é 0 ou não.
 
+	push di
 	lea 	di, MsgLinhaEmBranco
 	call 	coloca_erro_no_buffer
+	pop di
 
 
-
-	jmp 	return_transformacao
+	ret
 
 erro_caracter_invalido:
-
+	push di
 	lea 	di, MsgErrorCaracterInvalido
 	call 	coloca_erro_no_buffer
-
-
-
-	jmp 	return_transformacao
+	pop di
+	
+	ret
 
 termina_calculo_checksum:
     ; Restaura registradores salvos e retorna
