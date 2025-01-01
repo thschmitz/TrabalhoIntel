@@ -1,4 +1,3 @@
-
 ;
 ;====================================================================
 ;	- Escrever um programa para ler um arquivo texto e 
@@ -14,7 +13,6 @@ CR		equ		0dh
 LF		equ		0ah
 
 	.data
-
 ContadorBuffer  dw 	0
 NomeTesteAleatorio db 	"Teste", 0
 FileNameSrc		db		"IN.txt", 0		; Nome do arquivo a ser lido
@@ -42,11 +40,9 @@ BarCodeTable DB 101011b     ; 0
 	DB 1001101b    ; 6
 	DB 1010011b    ; 7
 	DB 1101001b    ; 8
-	DB 1101101b    ; 9
+	DB 110101b    ; 9
 	DB 101101b     ; -
 	DB 1011001b    ; SS
-
-
 
 MsgErroOpenFile		db	"Erro: Nao foi possivel fazer a abertura do arquivo.", CR, LF, 0
 MsgErroCreateFile	db	"Erro: Nao foi possivel fazer a criacao do arquivo.", CR, LF, 0
@@ -57,8 +53,8 @@ MsgErroWriteFile	db	"Erro: Nao foi possivel fazer a escrita do arquivo.", CR, LF
 MsgErrorCaracterInvalido db "Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.", 0
 MsgLinhaEmBranco	db 	"Erro: Nao foi possivel fazer a transcricao de uma linha em branco.", 0
 
-	.code
-	.startup
+.code
+.startup
 
 	lea		dx,FileNameSrc
 	call	fopen
@@ -99,14 +95,6 @@ Continua3:
 TerminouArquivo:
 	call    criaNovoBuffer
 
-
-
-
-
-
-
-
-
 	lea 	si, OutputBuffer
 	lea 	bx, NewBuffer
 
@@ -119,17 +107,6 @@ loop_transformacoes:
 	inc 	si
 	cmp 	byte ptr [bx], 0
 	jne 	loop_transformacoes
-
-
-
-
-
-
-
-
-
-
-
 
 	lea 	si, OutputBuffer
 	mov 	bx, FileHandleDst
@@ -147,17 +124,6 @@ loop_escrever_output:
 loop_escrever_output_fim:
 	lea 	bx, OutputBuffer
 	call 	printf_s
-
-
-
-
-
-
-
-
-
-
-
 
 	mov		bx,FileHandleSrc	; Fecha arquivo origem
 	call	fclose
@@ -232,7 +198,7 @@ getChar endp
 ;		NovoBuffer -> buffer com o conteudo do arquivo
 ;--------------------------------------------------------------------
 criaNovoBuffer    proc near
-	lea bx, FileBuffer
+	lea 	bx, FileBuffer
 
 criaNovoBuffer_loop:
 	mov 	dl, [bx]	; Carrega o primeiro caractere do buffer
@@ -243,22 +209,22 @@ criaNovoBuffer_loop:
 	cmp     byte ptr dl, 'S'             ; Verifica se o caractere é 'S'
 	jne     criaNovoBuffer_end    ; Se não for, sai do loop
 
-	mov dl, [bx + 1]
+	mov 	dl, [bx + 1]
 
 	cmp     byte ptr dl, 'T'  ; Verifica se o próximo caractere é 'T'
 	jne     criaNovoBuffer_end    ; Se não for, sai do loop
 
-	mov dl, [bx + 2]
+	mov 	dl, [bx + 2]
 
 	cmp     byte ptr dl, 'A'; Verifica se o próximo caractere é 'A'
 	jne     criaNovoBuffer_end    ; Se não for, sai do loop
 
-	mov dl, [bx + 3]
+	mov 	dl, [bx + 3]
 
 	cmp     byte ptr dl, 'R'; Verifica se o próximo caractere é 'R'
 	jne     criaNovoBuffer_end    ; Se não for, sai do loop
 
-	mov dl, [bx + 4]
+	mov 	dl, [bx + 4]
 
 	cmp     byte ptr dl, 'T'; Verifica se o próximo caractere é 'T'
 	jne     criaNovoBuffer_end    ; Se não for, sai do loop
@@ -266,14 +232,8 @@ criaNovoBuffer_loop:
 	lea 	si, NewBuffer
 
 criaNovoBuffer_loop2:
-	inc bx
+	inc 	bx
 	mov 	dl, [bx]
-	;cmp     byte ptr dl, 0Ah ; CR (Carriage Return)
-	;je criaNovoBuffer_loop2
-	;cmp     byte ptr dl, 0Dh ; LF (Line Feed)
-	;je criaNovoBuffer_loop2
-
-	;dec bx
 criaNovoBuffer_insere:
 	add     ax, si
 	inc 	bx
@@ -286,7 +246,7 @@ criaNovoBuffer_insere:
 
 	cmp 	byte ptr dl, 'S' ; Verifica se o próximo caractere é 'S' de 'STOP'
 	jne		criaNovoBuffer_insere
-	dec si 
+	dec 	si 
 
 	mov 	dl, [bx + 1]
 	cmp 	byte ptr dl, 'T' ; Verifica se o próximo caractere é 'T' de 'STOP'
@@ -304,24 +264,24 @@ criaNovoBuffer_insere:
 	jmp     criaNovoBuffer_print
 	
 criaNovoBuffer_end:
-	inc bx
-	jmp criaNovoBuffer_loop
+	inc 	bx
+	jmp 	criaNovoBuffer_loop
 
 criaNovoBuffer_sem_start:
-	cmp cx, 0
-	lea bx, MsgErroSemStart
-	call printf_s
+	cmp 	cx, 0
+	lea 	bx, MsgErroSemStart
+	call 	printf_s
 	.exit
 
 criaNovoBuffer_print:
-	lea bx, NewBuffer
+	lea 	bx, NewBuffer
 
-	call printf_s
+	call 	printf_s
 	ret
 
 criaNovoBuffer_sem_stop:
-	lea bx, MsgErroSemStop
-	call printf_s
+	lea 	bx, MsgErroSemStop
+	call 	printf_s
 	.exit
 
 criaNovoBuffer    endp
@@ -333,8 +293,8 @@ criaNovoBuffer    endp
 ;		Buffer com dados em barcode
 ;--------------------------------------------------------------------
 transformaEmBarcode proc near
-	mov      cx, 11
-	call     transforma_em_barcode_exec
+	mov     cx, 11
+	call    transforma_em_barcode_exec
 
 	mov 	dx, ds
 	mov 	es, dx
@@ -345,8 +305,8 @@ transformaEmBarcode proc near
 transformaEmBarcode_loop:
 	mov     dl, [bx]
 	mov 	[di], dl
-	inc bx
-	inc di
+	inc 	bx
+	inc 	di
 
 	cmp     byte ptr dl, 0    ; Verifica se o buffer está vazio
 	je      transformaEmBarcode_fim_traducao    ; Se estiver, retorna
@@ -406,43 +366,43 @@ transformaEmBarcode_loop:
 transformaEmBarcode_erro_caractere_invalido:
 loop_volta_inicio_linha:
 
-	sub si, 1
-	mov dl, [si]
+	sub 	si, 1
+	mov 	dl, [si]
 
-    cmp dl, 0
-    je  erro_caracter_invalido
+    cmp 	dl, 0
+    je  	erro_caracter_invalido
 
-	cmp dl, 10
-	je 	erro_caracter_invalido
+	cmp 	dl, 10
+	je 		erro_caracter_invalido
 
-	cmp dl, 13
-	je 	erro_caracter_invalido
+	cmp 	dl, 13
+	je 		erro_caracter_invalido
 
 	mov 	[si], 0
 
-	jmp loop_volta_inicio_linha
+	jmp 	loop_volta_inicio_linha
 
 transformaEmBarcode_codigo:
-	call transforma_em_barcode_exec
-	jmp transformaEmBarcode_loop
+	call 	transforma_em_barcode_exec
+	jmp 	transformaEmBarcode_loop
 
 transforma_em_barcode_exec:
 	push 	bx
 	lea 	bx, BarCodeTable
 	add 	bx, cx
 	mov 	dl, [bx]
-	pop bx
+	pop 	bx
 loop_acha_primeiro:
-	shl	 dl, 1
-	jc loop_coloca_valores
-	jmp loop_acha_primeiro
+	shl		dl, 1
+	jc 		loop_coloca_valores
+	jmp 	loop_acha_primeiro
 
 loop_coloca_valores:
-	mov  ax, 30h
-	adc  ax, 0
+	mov  	ax, 30h
+	adc  	ax, 0
 
-	mov	 [si], ax
-	inc si
+	mov	 	[si], ax
+	inc 	si
 
 	cmp 	dl, 0
 	je  	loop_coloca_valores_acaba
@@ -454,8 +414,8 @@ loop_coloca_valores_acaba:
 	
 	cmp 	cx, 10
 	jg 		loop_coloca_valores_acaba_final
-	push bx
-	push dx
+	push 	bx
+	push 	dx
 	mov 	dl, [bx]
 
 	cmp 	ColocaSeparador, 0
@@ -473,8 +433,8 @@ loop_coloca_valores_acaba:
 	mov 	[si], '0'
 	inc 	si
 pula_coloca_zero:
-	pop dx
-	pop bx
+	pop 	dx
+	pop 	bx
 	
 loop_coloca_valores_acaba_final:
 	ret
@@ -518,12 +478,6 @@ loop_calcula_checksum:
     cmp     al, 0Ah               ; LF
     je      ignora_caractere
 
-    ; Verifica se é numérico
-    ;cmp     al, '0'
-    ;jb      erro_linha_vazia
-    ;cmp     al, '9'
-    ;ja      erro_linha_vazia
-
     ; Converte o caractere numérico de ASCII para número
 	cmp 	al, '-'
 	je		coloca_valor_correto_travessao
@@ -539,13 +493,6 @@ nao_eh_travessao:
 
     ; Soma ao total do checksum
     add     ChecksumTotal, ax
-
-    ; Diagnóstico: imprime o caractere processado
-    ;mov     dl, [si]
-    ;mov     ah, 2                 ; Interrupção do DOS para imprimir caractere
-    ;int     21h
-    ;lea     bx, MsgNewLine
-    ;call    printf_s
 
 ignora_caractere:
     ; Ignora o caractere e avança no buffer
@@ -575,9 +522,6 @@ checksum_done:
     push    ax                     ; Salva AX antes da exibição
     mov     ax, cx                 ; Move o valor do resto para AX
 	mov 	Checksum, ax
-    call    print_number           ; Imprime o valor do checksum dividido por 11
-    lea     bx, MsgNewLine         ; Prepara nova linha
-    call    printf_s
     pop     ax                     ; Restaura AX
 
     ; Restaura registradores
@@ -600,37 +544,35 @@ erro_linha_vazia:
 erro_linha_vazia_fim:
 	sub 	si, 7 ; Apagar o SS inicial que sempre é colocado, independentemente se checksum é 0 ou não.
 
-	push di
+	push 	di
 	lea 	di, MsgLinhaEmBranco
 	call 	coloca_erro_no_buffer
-	pop di
+	pop 	di
 
-	dec si
-	;inc bx
-	jmp return_transformacao
+	dec 	si
+	jmp 	return_transformacao
 
 erro_caracter_invalido:
 	inc 	si
-	push di
+	push 	di
 	lea 	di, MsgErrorCaracterInvalido
 	call 	coloca_erro_no_buffer
-	pop di
+	pop 	di
 
-	dec si
+	dec 	si
 loop_avanca_ate_acabar_palavra_incorreta:
 
-	inc bx
-	mov dl, [bx]
+	inc 	bx
+	mov 	dl, [bx]
 
-	cmp dl, 10
+	cmp 	dl, 10
 	jne 	loop_avanca_ate_acabar_palavra_incorreta
 
-	inc bx
-	jmp return_transformacao
+	inc 	bx
+	jmp 	return_transformacao
 
 termina_calculo_checksum:
     ; Restaura registradores salvos e retorna
-
 	pop     ax
     pop     si
     pop     di
@@ -643,8 +585,8 @@ termina_calculo_checksum:
 
 
 	mov 	ColocaSeparador, 1
-	mov      cx, 11
-	call     transforma_em_barcode_exec
+	mov     cx, 11
+	call    transforma_em_barcode_exec
 
 return_transformacao:
     ret
@@ -671,53 +613,6 @@ loop_percorre_string:
 
 	ret
 coloca_erro_no_buffer endp
-
-
-;--------------------------------------------------------------------
-;Função:Converte um ASCII-DECIMAL para HEXA
-;Entra: (S) -> DS:BX -> Ponteiro para o string de origem
-;Sai:	(A) -> AX -> Valor "Hex" resultante
-;Algoritmo:
-;	A = 0;
-;	while (*S!='\0') {
-;		A = 10 * A + (*S - '0')
-;		++S;
-;	}
-;	return
-;--------------------------------------------------------------------
-atoi	proc near
-
-		; A = 0;
-		mov		ax,0
-		
-atoi_2:
-		; while (*S!='\0') {
-		cmp		byte ptr[bx], 0
-		jz		atoi_1
-
-		; 	A = 10 * A
-		mov		cx,10
-		mul		cx
-
-		; 	A = A + *S
-		mov		ch,0
-		mov		cl,[bx]
-		add		ax,cx
-
-		; 	A = A - '0'
-		sub		ax,'0'
-
-		; 	++S
-		inc		bx
-		
-		;}
-		jmp		atoi_2
-
-atoi_1:
-		; return
-		ret
-
-atoi	endp
 
 
 ;--------------------------------------------------------------------
@@ -788,12 +683,8 @@ ps_1:
 	ret
 printf_s	endp
 
+
+
 ;--------------------------------------------------------------------
 		end
 ;--------------------------------------------------------------------
-
-
-	
-
-
-
