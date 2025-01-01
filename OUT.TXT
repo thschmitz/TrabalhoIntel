@@ -1,1 +1,2 @@
+Erro: Nao foi possivel fazer a transcricao de uma linha em branco.
 Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.

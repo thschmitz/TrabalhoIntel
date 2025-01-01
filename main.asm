@@ -54,8 +54,8 @@ MsgErroReadFile		db	"Erro: Nao foi possível fazer a leitura do arquivo.", CR, L
 MsgErroSemStart		db	"Erro: Nao foi encontrado a palavra 'START' no arquivo.", CR, LF, 0
 MsgErroSemStop		db	"Erro: Nao foi encontrado a palavra 'STOP' no arquivo.", CR, LF, 0
 MsgErroWriteFile	db	"Erro: Nao foi possivel fazer a escrita do arquivo.", CR, LF, 0
-MsgErrorCaracterInvalido db "Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.", CR, LF, 0
-MsgLinhaEmBranco	db 	"Erro: Nao foi possivel fazer a transcricao de uma linha em branco.", CR, LF, 0
+MsgErrorCaracterInvalido db "Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.", 0
+MsgLinhaEmBranco	db 	"Erro: Nao foi possivel fazer a transcricao de uma linha em branco.", 0
 
 	.code
 	.startup
@@ -405,19 +405,20 @@ transformaEmBarcode_loop:
 
 transformaEmBarcode_erro_caractere_invalido:
 loop_volta_inicio_linha:
-    
+
 	sub si, 1
 	mov dl, [si]
 
-	lea dx, OutputBuffer
-    cmp si, dx
+    cmp dl, 0
     je  erro_caracter_invalido
 
-	cmp dl, 0AH
+	cmp dl, 10
 	je 	erro_caracter_invalido
 
-	cmp dl, 0DH
+	cmp dl, 13
 	je 	erro_caracter_invalido
+
+	mov 	[si], 0
 
 	jmp loop_volta_inicio_linha
 
@@ -478,7 +479,9 @@ pula_coloca_zero:
 loop_coloca_valores_acaba_final:
 	ret
 
-transformaEmBarcode_fim_traducao: 	
+transformaEmBarcode_fim_traducao: 
+    cmp 	cx, 11
+	je      erro_linha_vazia_fim	
     mov     byte ptr [di], 0      ; Adiciona terminador null no final do ChecksumBuffer
     push    cx                    ; Salva CX
     push    bx
@@ -594,7 +597,7 @@ erro_linha_vazia:
     pop     di
     pop     bx
     pop     cx
-
+erro_linha_vazia_fim:
 	sub 	si, 7 ; Apagar o SS inicial que sempre é colocado, independentemente se checksum é 0 ou não.
 
 	push di
@@ -602,15 +605,27 @@ erro_linha_vazia:
 	call 	coloca_erro_no_buffer
 	pop di
 
-
+	dec si
+	;inc bx
 	jmp return_transformacao
 
 erro_caracter_invalido:
+	inc 	si
 	push di
 	lea 	di, MsgErrorCaracterInvalido
 	call 	coloca_erro_no_buffer
 	pop di
-	
+
+	dec si
+loop_avanca_ate_acabar_palavra_incorreta:
+
+	inc bx
+	mov dl, [bx]
+
+	cmp dl, 10
+	jne 	loop_avanca_ate_acabar_palavra_incorreta
+
+	inc bx
 	jmp return_transformacao
 
 termina_calculo_checksum:
