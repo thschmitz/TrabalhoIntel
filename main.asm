@@ -253,6 +253,14 @@ criaNovoBuffer_loop:
 	jne     criaNovoBuffer_end    ; Se não for, sai do loop
 	add     bx, 4
 	lea 	si, NewBuffer
+	
+	cmp 	byte ptr [bx + 1], 13
+	je 		incrementa_bx_start
+
+	jmp 	criaNovoBuffer_loop2 
+
+incrementa_bx_start:
+	add 	bx, 2
 
 criaNovoBuffer_loop2:
 	inc 	bx
@@ -462,7 +470,19 @@ pula_coloca_zero:
 loop_coloca_valores_acaba_final:
 	ret
 
+avanca_apos_0D:
+	inc 	bx
+	cmp 	byte ptr [bx], 13
+	je 		coloca_SS_terminar
+	jmp 	transformaEmBarcode_loop
+
+incrementa_di:
+	inc di
+	jmp loop_conta_palavras_checksum
+
 transformaEmBarcode_fim_traducao: 
+	cmp 	dl, 13
+	je 		avanca_apos_0D
     cmp 	cx, 11
 	je      erro_linha_vazia_fim	
     mov     byte ptr [di], 0      ; Adiciona terminador null no final do ChecksumBuffer
@@ -475,9 +495,14 @@ transformaEmBarcode_fim_traducao:
     ; Calcula o comprimento da palavra
     mov     cl, 0                 ; Zera CL (contador de caracteres)
     lea     di, ChecksumBuffer    ; Ponteiro para o início do buffer
+
+	cmp 	byte ptr [di], 13
+	je 		incrementa_di
 loop_conta_palavras_checksum:
-    cmp     byte ptr [di], 0AH      ; Verifica o final da palavra
+    cmp     byte ptr [di], 10      ; Verifica o final da palavra
     je      loop_conta_palavras_end
+	cmp 	byte ptr [di], 13
+	je 		loop_conta_palavras_end
     inc     di                    ; Avança para o próximo caractere
     inc     cl                    ; Incrementa o comprimento
     jmp     loop_conta_palavras_checksum
@@ -488,7 +513,13 @@ loop_conta_palavras_end:
     jz      erro_linha_vazia
 
     lea     si, ChecksumBuffer    ; Ponteiro para o início do buffer
+	cmp 	byte ptr [si], 13
+	je 		incrementa_si
+	jmp 	zerar_checksum
+incrementa_si:
+	inc si
 
+zerar_checksum:
     mov     ChecksumTotal, 0      ; Zera o ChecksumTotal
 loop_calcula_checksum:
     mov     al, [si]              ; Carrega o próximo byte do ChecksumBuffer em AL
@@ -545,6 +576,9 @@ checksum_done:
     push    ax                     ; Salva AX antes da exibição
     mov     ax, cx                 ; Move o valor do resto para AX
 	mov 	Checksum, ax
+    call    print_number           ; Imprime o valor do checksum dividido por 11
+    lea     bx, MsgNewLine         ; Prepara nova linha
+    call    printf_s
     pop     ax                     ; Restaura AX
 
     ; Restaura registradores
@@ -606,6 +640,7 @@ termina_calculo_checksum:
 	mov 	cx, Checksum
 	call 	transforma_em_barcode_exec
 
+coloca_SS_terminar:
 
 	mov 	ColocaSeparador, 1
 	mov     cx, 11
@@ -676,6 +711,37 @@ ps_1:
 printf_s	endp
 
 
+
+;--------------------------------------------------------------------
+; Função para imprimir um número na tela
+; Entrada: AX contém o número a ser impresso
+;--------------------------------------------------------------------
+print_number proc near
+    push    ax                    ; Salva AX
+    push    dx                    ; Salva DX
+    xor     cx, cx                ; Zera CX (contador de dígitos)
+
+    ; Calcula os dígitos do número (armazenados na pilha)
+print_number_loop:
+    xor     dx, dx                ; Zera DX
+    div     word ptr Divisor10    ; Divide AX por 10 (quociente em AX, resto em DX)
+    push    dx                    ; Armazena o dígito na pilha
+    inc     cx                    ; Incrementa o contador de dígitos
+    test    ax, ax                ; Verifica se o quociente é 0
+    jnz     print_number_loop     ; Continua se ainda houver dígitos
+
+    ; Imprime os dígitos na ordem correta
+print_number_output:
+    pop     dx                    ; Recupera o próximo dígito
+    add     dl, '0'               ; Converte o dígito para ASCII
+    mov     ah, 2                 ; Função para imprimir caractere
+    int     21h                   ; Chama a interrupção do DOS
+    loop    print_number_output   ; Continua até imprimir todos os dígitos
+
+    pop     dx                    ; Restaura DX
+    pop     ax                    ; Restaura AX
+    ret
+print_number endp
 
 ;--------------------------------------------------------------------
 		end

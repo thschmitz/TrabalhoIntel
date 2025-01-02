@@ -1,23 +1,24 @@
 [shared-]
-	pmark="C:\main.asm" 347 1
+	pmark="C:\main.asm" 166 1
 	version=3
 [debug-]
 	target="c:\main.exe"
 	synonym=;C:
 	genericbp='E "{,main.asm,C:\main.EXE} loop_transformacoes"
-	memwin=vm1b 0x063F:0x080F 
+	genericbp='E "{,main.asm,C:\main.EXE} .257"
+	memwin=vm1b 0x0643:0x0810 
 	memwin=vm2b 0x063E:0x100C 
 [cv]
 	wndstate=0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1
 	wndstate=1 67 5 0 1 0 1 0 0 0 0 0 0 0 -1
 	wndstate=2 34 4 33 1 0 1 0 0 0 0 0 0 0 -1
-	wndstate=3 67 18 0 1 0 1 0 0 0 346 340 0 0 -1
-	wndstate=4 67 18 0 1 0 1 0 0 0 61 56 0 0 -1
-	wndstate=5 67 18 0 1 1 1 0 46 0 156 153 0 0 -1
-	wndstate=6 67 18 0 1 0 1 0 0 0 312 312 0 0 -1
+	wndstate=3 67 18 0 1 0 1 0 0 0 165 160 0 0 -1
+	wndstate=4 67 18 0 1 0 1 0 0 0 60 55 0 0 -1
+	wndstate=5 67 18 0 1 0 1 0 0 0 159 159 0 0 -1
+	wndstate=6 67 18 0 1 0 1 0 0 0 316 316 0 0 -1
 	wndstate=7 13 23 67 1 0 1 0 0 0 0 0 0 0 -1
 	wndstate=8 67 4 0 16 0 0 0 0 0 0 0 0 0 -1
-	wndstate=9 80 5 0 19 0 1 0 1 0 9 7 0 0 -1
+	wndstate=9 80 5 0 19 1 1 0 0 0 8 6 0 0 -1
 	command=use auto
 	command=n10
 	screensize=25
