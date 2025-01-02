@@ -14,7 +14,8 @@ LF		equ		0ah
 
 	.data
 ContadorBuffer  dw 	0
-NomeTesteAleatorio db 	"Teste", 0
+NomeArquivoEntrada	db		"Nome do arquivo: ", 0
+NomeArquivoSaida	db		"Nome do arquivo de saida: ", 0
 FileNameSrc		db		"IN.txt", 0		; Nome do arquivo a ser lido
 FileNameDst		db		"OUT.txt", 0	; Nome do arquivo a ser escrito
 FileHandleSrc	dw		0				; Handler do arquivo origem
@@ -44,41 +45,44 @@ BarCodeTable DB 101011b     ; 0
 	DB 101101b     ; -
 	DB 1011001b    ; SS
 
+; Mensagens de erros que podem aparecer na execucao do programa
 MsgErroOpenFile		db	"Erro: Nao foi possivel fazer a abertura do arquivo.", CR, LF, 0
 MsgErroCreateFile	db	"Erro: Nao foi possivel fazer a criacao do arquivo.", CR, LF, 0
 MsgErroReadFile		db	"Erro: Nao foi possível fazer a leitura do arquivo.", CR, LF, 0
 MsgErroSemStart		db	"Erro: Nao foi encontrado a palavra 'START' no arquivo.", CR, LF, 0
 MsgErroSemStop		db	"Erro: Nao foi encontrado a palavra 'STOP' no arquivo.", CR, LF, 0
 MsgErroWriteFile	db	"Erro: Nao foi possivel fazer a escrita do arquivo.", CR, LF, 0
+; Mensagens de erros que podem aparecer no arquivo de texto final
 MsgErrorCaracterInvalido db "Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.", 0
 MsgLinhaEmBranco	db 	"Erro: Nao foi possivel fazer a transcricao de uma linha em branco.", 0
 
 .code
 .startup
-
+	; Abro o meu arquivo de entrada, se ele não existir, eu exibo uma mensagem de erro e encerro o programa
 	lea		dx,FileNameSrc
 	call	fopen
 	mov		FileHandleSrc,bx
-	jnc		Continua1
+	jnc		criarArquivoSaida ; Se não der nenhum problema, vou para a proxima etapa
 	lea		bx, MsgErroOpenFile
 	call	printf_s
 	.exit	1
-Continua1:
-
+criarArquivoSaida:
+	; Criando o arquivo de destino, que será o arquivo de saída, caso ele já exista, ele será sobrescrito. Se eu não conseguir
+	; criar o arquivo de destino, eu fecho o arquivo de origem e exibo uma mensagem de erro
 	lea		dx,FileNameDst
 	call	fcreate
 	mov		FileHandleDst,bx
-	jnc		Continua2
+	jnc		lerArquivoDeEntrada
 	mov		bx,FileHandleSrc
 	call	fclose
 	lea		bx, MsgErroCreateFile
 	call	printf_s
 	.exit	1
-Continua2:
-
+lerArquivoDeEntrada:
+	; Leio o arquivo de entrada, se eu não conseguir ler o arquivo de entrada, eu fecho os arquivos e exibo uma mensagem de erro
 	mov		bx,FileHandleSrc    
 	call	getChar
-	jnc		Continua3
+	jnc		leituraCorretaArquivoEntrada
 	lea		bx, MsgErroReadFile
 	call	printf_s
 	mov		bx,FileHandleSrc
@@ -86,28 +90,39 @@ Continua2:
 	mov		bx,FileHandleDst
 	call	fclose
 	.exit	1
-Continua3:
-
+leituraCorretaArquivoEntrada:
 	cmp		ax,0
-	jz		TerminouArquivo
-	jmp 	Continua2
+	jz		terminouLerArquivoEntrada
+	jmp 	lerArquivoDeEntrada
 	
-TerminouArquivo:
+terminouLerArquivoEntrada:
+	; Criando um novo buffer a partir dos dados do arquivo de entrada pois eu só quero o conteudo entre o START e o STOP
+	lea 	bx, NomeArquivoEntrada
+	call 	printf_s
+	lea 	bx, FileNameSrc
+	call 	printf_s
+	lea 	bx, MsgNewLine	
+	call 	printf_s
 	call    criaNovoBuffer
 
 	lea 	si, OutputBuffer
 	lea 	bx, NewBuffer
 
-
 loop_transformacoes:
+	; Loop responsável por transformar cada caractere do buffer em um barcode
 	call    transformaEmBarcode
 
-
+	; Adiciona um CR e um LF no final de cada barcode
 	mov 	[si], 10
 	inc 	si
+	mov 	[si], 13
+	inc 	si
+
+	; Verifica se já chegamos no final do buffer de conteudo entre START e STOP
 	cmp 	byte ptr [bx], 0
 	jne 	loop_transformacoes
 
+	; Escreve o conteudo do buffer de barcode no arquivo de destino
 	lea 	si, OutputBuffer
 	mov 	bx, FileHandleDst
 	mov 	cx, 0
@@ -116,15 +131,23 @@ loop_escrever_output:
 	cmp 	byte ptr dl, 0
 	je 		loop_escrever_output_fim
 	push 	bx
+	; Coloca os valores no arquivo de destino
 	call 	setChar
 	pop 	bx
 	inc 	si
 	jmp 	loop_escrever_output
 	
 loop_escrever_output_fim:
+	lea 	bx, NomeArquivoSaida
+	call 	printf_s
+	lea 	bx, FileNameDst
+	call 	printf_s
+	lea 	bx, MsgNewLine
+	call 	printf_s
 	lea 	bx, OutputBuffer
 	call 	printf_s
 
+	; Fecha os arquivos após terminar de escrever tudo no arquivo de saída.
 	mov		bx,FileHandleSrc	; Fecha arquivo origem
 	call	fclose
 	mov		bx,FileHandleDst	; Fecha arquivo destino
