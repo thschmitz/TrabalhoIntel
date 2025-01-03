@@ -142,10 +142,13 @@ loop_escrever_output:
 	mov 	dl, [si]
 	cmp 	byte ptr dl, 0
 	je 		loop_escrever_output_fim
+	cmp 	byte ptr dl, 13
+	je 		final_loop_escrever_output
 	push 	bx
 	; Coloca os valores no arquivo de destino
 	call 	setChar
 	pop 	bx
+final_loop_escrever_output:
 	inc 	si
 	jmp 	loop_escrever_output
 	
