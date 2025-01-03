@@ -620,13 +620,20 @@ erro_caracter_invalido:
 	dec 	si
 loop_avanca_ate_acabar_palavra_incorreta:
 
-	inc 	bx
 	mov 	dl, [bx]
+	inc 	bx
 
-	cmp 	dl, 10
+	cmp 	byte ptr dl, 10
 	jne 	loop_avanca_ate_acabar_palavra_incorreta
 
+	mov 	dl, [bx]
+	cmp 	byte ptr dl, 13
+	je 	incrementa_bx_acaba_palavra
+
+	jmp 	return_transformacao
+incrementa_bx_acaba_palavra:
 	inc 	bx
+
 	jmp 	return_transformacao
 
 termina_calculo_checksum:

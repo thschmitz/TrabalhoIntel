@@ -1,6 +1,6 @@
 Erro: Nao foi possivel fazer a transcricao de uma linha em branco.
+101100110110110110110101011011011001010110110111010011011001
 Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.
 Erro: Nao foi possivel fazer a transcricao de uma linha em branco.
-101100110010110110101101001011011010110100101110010111011001
 Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.
 Erro: Nao foi possivel fazer a transcricao de uma linha em branco.
