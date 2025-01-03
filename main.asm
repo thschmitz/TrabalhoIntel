@@ -118,6 +118,18 @@ loop_transformacoes:
 	mov 	[si], 13
 	inc 	si
 
+	dec 	bx
+	cmp 	byte ptr [bx], 13
+	je 		incrementa_bx
+
+	inc 	bx
+	jmp 	checagem_fim_arquivo
+
+incrementa_bx:	
+	add bx, 2
+	jmp checagem_fim_arquivo
+
+checagem_fim_arquivo:
 	; Verifica se já chegamos no final do buffer de conteudo entre START e STOP
 	cmp 	byte ptr [bx], 0
 	jne 	loop_transformacoes
@@ -470,19 +482,7 @@ pula_coloca_zero:
 loop_coloca_valores_acaba_final:
 	ret
 
-avanca_apos_0D:
-	inc 	bx
-	cmp 	byte ptr [bx], 13
-	je 		coloca_SS_terminar
-	jmp 	transformaEmBarcode_loop
-
-incrementa_di:
-	inc di
-	jmp loop_conta_palavras_checksum
-
 transformaEmBarcode_fim_traducao: 
-	cmp 	dl, 13
-	je 		avanca_apos_0D
     cmp 	cx, 11
 	je      erro_linha_vazia_fim	
     mov     byte ptr [di], 0      ; Adiciona terminador null no final do ChecksumBuffer
@@ -496,8 +496,6 @@ transformaEmBarcode_fim_traducao:
     mov     cl, 0                 ; Zera CL (contador de caracteres)
     lea     di, ChecksumBuffer    ; Ponteiro para o início do buffer
 
-	cmp 	byte ptr [di], 13
-	je 		incrementa_di
 loop_conta_palavras_checksum:
     cmp     byte ptr [di], 10      ; Verifica o final da palavra
     je      loop_conta_palavras_end

@@ -1,8 +1,8 @@
 
  Start  Stop   Length Name                   Class
- 00000H 003FDH 003FEH _TEXT                  CODE
- 003FEH 02568H 0216BH _DATA                  DATA
- 02570H 0296FH 00400H STACK                  STACK
+ 00000H 003F2H 003F3H _TEXT                  CODE
+ 003F4H 0255EH 0216BH _DATA                  DATA
+ 02560H 0295FH 00400H STACK                  STACK
 
  Origin   Group
  003F:0   DGROUP
