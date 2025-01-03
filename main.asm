@@ -13,6 +13,8 @@ CR		equ		0dh
 LF		equ		0ah
 
 	.data
+PalavraStart 	db 		"START", 0
+PalavraStop 	db 		"STOP", 0
 ContadorBuffer  dw 	0
 NomeArquivoEntrada	db		"Nome do arquivo: ", 0
 NomeArquivoSaida	db		"Nome do arquivo de saida: ", 0
@@ -138,10 +140,38 @@ checagem_fim_arquivo:
 	lea 	si, OutputBuffer
 	mov 	bx, FileHandleDst
 	mov 	cx, 0
+
+loop_escreve_START_arquivo_saida:
+	push 	si
+	lea 	si, PalavraStart
+loop_escreve_start:
+	mov 	dl, [si]
+	cmp 	byte ptr dl, 0
+	je      escreve_cr_lf
+	push 	bx
+	call 	setChar
+	pop 	bx
+	inc 	si
+	jmp 	loop_escreve_start
+
+escreve_cr_lf:
+	mov 	dl, 13
+	push 	bx
+	call 	setChar
+	pop bx
+
+	mov 	dl, 10
+	push 	bx
+	call 	setChar
+	pop     bx
+	pop 	si
+	jmp loop_escrever_output
+
+
 loop_escrever_output:
 	mov 	dl, [si]
 	cmp 	byte ptr dl, 0
-	je 		loop_escrever_output_fim
+	je 		loop_escrever_STOP
 	cmp 	byte ptr dl, 13
 	je 		final_loop_escrever_output
 	push 	bx
@@ -152,6 +182,19 @@ final_loop_escrever_output:
 	inc 	si
 	jmp 	loop_escrever_output
 	
+loop_escrever_STOP:
+	push 	si
+	lea 	si, PalavraStop
+loop_escreve_stop:
+	mov 	dl, [si]
+	cmp 	byte ptr dl, 0
+	je      loop_escrever_output_fim
+	push 	bx
+	call 	setChar
+	pop 	bx
+	inc 	si
+	jmp 	loop_escreve_stop
+
 loop_escrever_output_fim:
 	lea 	bx, NomeArquivoSaida
 	call 	printf_s

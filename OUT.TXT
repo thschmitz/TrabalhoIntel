@@ -1,6 +1,8 @@
+START
 Erro: Nao foi possivel fazer a transcricao de uma linha em branco.
-101100110110110110110101011011011001010110110111010011011001
+1011001101101101100101011011010101101011010110100101111011011011001
 Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.
 Erro: Nao foi possivel fazer a transcricao de uma linha em branco.
 Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.
-Erro: Nao foi possivel fazer a transcricao de uma linha em branco.
+10110011101011010010110110100101010011011001011011011011001
+STOP
