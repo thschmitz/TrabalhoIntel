@@ -115,9 +115,9 @@ loop_transformacoes:
 	call    transformaEmBarcode
 
 	; Adiciona um CR e um LF no final de cada barcode
-	mov 	[si], 10
-	inc 	si
 	mov 	[si], 13
+	inc 	si
+	mov 	[si], 10
 	inc 	si
 
 	dec 	bx
@@ -172,8 +172,7 @@ loop_escrever_output:
 	mov 	dl, [si]
 	cmp 	byte ptr dl, 0
 	je 		loop_escrever_STOP
-	cmp 	byte ptr dl, 13
-	je 		final_loop_escrever_output
+
 	push 	bx
 	; Coloca os valores no arquivo de destino
 	call 	setChar
@@ -321,7 +320,7 @@ criaNovoBuffer_loop:
 
 incrementa_bx_start_2:
 	add 	bx, 1
-	
+
 criaNovoBuffer_loop2:
 	inc 	bx
 	mov 	dl, [bx]
@@ -392,6 +391,9 @@ transformaEmBarcode proc near
 	mov 	di, 0
 	lea 	di, ChecksumBuffer
     xor     ax, ax                ; Zera AX para evitar resíduos
+
+	mov 	[si], '0'
+	inc 	si
 
 transformaEmBarcode_loop:
 	mov     dl, [bx]
@@ -514,12 +516,6 @@ loop_coloca_valores_acaba:
 
 	cmp     byte ptr dl, 0    ; Verifica se o buffer está vazio
 	je      pula_coloca_zero    ; Se estiver, retorna
-
-	cmp 	byte ptr dl, 13
-	je 		pula_coloca_zero
-
-	cmp 	byte ptr dl, 10
-	je 		pula_coloca_zero
 	
 	mov 	[si], '0'
 	inc 	si
@@ -645,7 +641,7 @@ erro_linha_vazia:
     pop     bx
     pop     cx
 erro_linha_vazia_fim:
-	sub 	si, 7 ; Apagar o SS inicial que sempre é colocado, independentemente se checksum é 0 ou não.
+	sub 	si, 8 ; Apagar o SS inicial que sempre é colocado, independentemente se checksum é 0 ou não.
 
 	push 	di
 	lea 	di, MsgLinhaEmBranco
@@ -689,13 +685,11 @@ termina_calculo_checksum:
     pop     bx
     pop     cx
 
-	mov 	ColocaSeparador, 0
 	mov 	cx, Checksum
 	call 	transforma_em_barcode_exec
 
 coloca_SS_terminar:
 
-	mov 	ColocaSeparador, 1
 	mov     cx, 11
 	call    transforma_em_barcode_exec
 
