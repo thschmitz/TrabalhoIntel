@@ -19,7 +19,7 @@ ContadorBuffer  dw 	0
 NomeArquivoEntrada	db		"Nome do arquivo: ", 0
 NomeArquivoSaida	db		"Nome do arquivo de saida: ", 0
 FileNameSrc		db		"IN.txt", 0		; Nome do arquivo a ser lido
-FileNameDst		db		"OUT.txt", 0	; Nome do arquivo a ser escrito
+FileNameDst		db		"OUT.bar", 0	; Nome do arquivo a ser escrito
 FileHandleSrc	dw		0				; Handler do arquivo origem
 FileHandleDst	dw		0				; Handler do arquivo destino
 FileBuffer		db		2000 dup (?)	; Buffer de leitura/escrita do arquivo
@@ -52,7 +52,7 @@ MsgErroOpenFile		db	"Erro: Nao foi possivel fazer a abertura do arquivo.", CR, L
 MsgErroCreateFile	db	"Erro: Nao foi possivel fazer a criacao do arquivo.", CR, LF, 0
 MsgErroReadFile		db	"Erro: Nao foi possível fazer a leitura do arquivo.", CR, LF, 0
 MsgErroSemStart		db	"Erro: Nao foi encontrado a palavra 'START' no arquivo.", CR, LF, 0
-MsgErroSemStop		db	"Erro: Nao foi encontrado a palavra 'STOP' no arquivo.", CR, LF, 0
+MsgErroSemStop		db	"Erro: Nao foi encontrado a palavra 'STOP' apos a palavra 'START' no arquivo.", CR, LF, 0
 MsgErroWriteFile	db	"Erro: Nao foi possivel fazer a escrita do arquivo.", CR, LF, 0
 ; Mensagens de erros que podem aparecer no arquivo de texto final
 MsgErrorCaracterInvalido db "Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.", 0
@@ -312,14 +312,16 @@ criaNovoBuffer_loop:
 	add     bx, 4
 	lea 	si, NewBuffer
 	
+	cmp 	byte ptr [bx + 1], 10
+	je 		criaNovoBuffer_loop2
 	cmp 	byte ptr [bx + 1], 13
-	je 		incrementa_bx_start
+	je 		incrementa_bx_start_2
 
 	jmp 	criaNovoBuffer_loop2 
 
-incrementa_bx_start:
-	add 	bx, 2
-
+incrementa_bx_start_2:
+	add 	bx, 1
+	
 criaNovoBuffer_loop2:
 	inc 	bx
 	mov 	dl, [bx]
