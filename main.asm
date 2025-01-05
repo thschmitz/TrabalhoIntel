@@ -145,6 +145,7 @@ loop_escreve_START_arquivo_saida:
 	push 	si
 	lea 	si, PalavraStart
 loop_escreve_start:
+	; Escreve START no início do arquivo de saída
 	mov 	dl, [si]
 	cmp 	byte ptr dl, 0
 	je      escreve_cr_lf
@@ -173,8 +174,8 @@ loop_escrever_output:
 	cmp 	byte ptr dl, 0
 	je 		loop_escrever_STOP
 
-	push 	bx
 	; Coloca os valores no arquivo de destino
+	push 	bx
 	call 	setChar
 	pop 	bx
 final_loop_escrever_output:
@@ -185,6 +186,7 @@ loop_escrever_STOP:
 	push 	si
 	lea 	si, PalavraStop
 loop_escreve_stop:
+	; Escreve a palavra STOP no final do arquivo de saida
 	mov 	dl, [si]
 	cmp 	byte ptr dl, 0
 	je      loop_escrever_output_fim
@@ -195,6 +197,7 @@ loop_escreve_stop:
 	jmp 	loop_escreve_stop
 
 loop_escrever_output_fim:
+	; Printa o conteudo do arquivo de saida ( Sem o START e sem o STOP ) no terminal
 	lea 	bx, NomeArquivoSaida
 	call 	printf_s
 	lea 	bx, FileNameDst
@@ -685,10 +688,15 @@ termina_calculo_checksum:
     pop     bx
     pop     cx
 
+	mov 	ColocaSeparador, 0
 	mov 	cx, Checksum
 	call 	transforma_em_barcode_exec
 
 coloca_SS_terminar:
+	mov 	ColocaSeparador, 1
+
+	mov 	[si], '0'
+	inc 	si
 
 	mov     cx, 11
 	call    transforma_em_barcode_exec
