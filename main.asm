@@ -625,9 +625,6 @@ checksum_done:
     push    ax                     ; Salva AX antes da exibição
     mov     ax, cx                 ; Move o valor do resto para AX
 	mov 	Checksum, ax
-    call    print_number           ; Imprime o valor do checksum dividido por 11
-    lea     bx, MsgNewLine         ; Prepara nova linha
-    call    printf_s
     pop     ax                     ; Restaura AX
 
     ; Restaura registradores
