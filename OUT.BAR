@@ -1,4 +1,5 @@
 START
+Erro: Nao foi possivel fazer a traducao de uma linha em branco.
 Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.
 10110010100110101010011011010010101001101011001
 Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.
@@ -7,5 +8,6 @@ Erro: Nao foi possivel fazer a traducao de uma linha em branco.
 Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.
 Erro: Nao foi possivel fazer a traducao de uma linha em branco.
 Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.
-Erro: Nao foi possivel fazer a traducao de uma linha em branco.
+Erro: Nao foi possivel fazer a traducao de uma linha com mais de 10 caracteres.
+Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.
 STOP
