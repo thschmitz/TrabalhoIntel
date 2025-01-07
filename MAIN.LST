@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 6.11		    01/04/25 21:55:22
+Microsoft (R) Macro Assembler Version 6.11		    01/07/25 18:05:33
 main.asm						     Page 1 - 1
 
 
@@ -15,7 +15,7 @@ main.asm						     Page 1 - 1
 						
  = 000D				CR		equ		0dh
  = 000A				LF		equ		0ah
-				
+
  0000					.data
  0000 53 54 41 52 54 00		PalavraStart 	db 		"START", 0
  0006 53 54 4F 50 00		PalavraStop 	db 		"STOP", 0
@@ -43,7 +43,7 @@ main.asm						     Page 1 - 1
  0FED  07D0 [			OutputBuffer    db 		2000 dup(?) 	; Espaço para os BarCodes (64 bytes)
         00
        ]
-				
+
  17BD 000A			Divisor10 		dw 		10
  17BF  07D0 [			ChecksumBuffer 	db 		2000 dup(?) 	; Espaço para os Checksums (64 bytes)
         00
@@ -53,7 +53,7 @@ main.asm						     Page 1 - 1
  1F92 0000			Checksum 		dw		0
  1F94 01			ColocaSeparador	db		1
  1F95 0D 0A 00			MsgNewLine          db CR, LF, 0 ; Caractere para nova linha
-				
+
  1F98 2B			BarCodeTable DB 101011b     ; 0
  1F99  6B				DB 1101011b    ; 1
  1F9A  4B				DB 1001011b    ; 2
@@ -66,7 +66,7 @@ main.asm						     Page 1 - 1
  1FA1  35				DB 110101b    ; 9
  1FA2  2D				DB 101101b     ; -
  1FA3  59				DB 1011001b    ; SS
-				
+
 				; Mensagens de erros que podem aparecer na execucao do programa
  1FA4 45 72 72 6F 3A 20		MsgErroOpenFile		db	"Erro: Nao foi possivel fazer a abertura do arquivo.", CR, LF, 0
        4E 61 6F 20 66 6F
@@ -141,19 +141,32 @@ main.asm						     Page 1 - 1
        20 71 75 65 20 65
        68 20 69 6E 76 61
        6C 69 64 6F 2E 00
- 214A 45 72 72 6F 3A 20		MsgLinhaEmBranco	db 	"Erro: Nao foi possivel fazer a transcricao de uma linha em branco.", 0
+ 214A 45 72 72 6F 3A 20		MsgLinhaEmBranco	db 	"Erro: Nao foi possivel fazer a traducao de uma linha em branco.", 0
        4E 61 6F 20 66 6F
        69 20 70 6F 73 73
        69 76 65 6C 20 66
        61 7A 65 72 20 61
-       20 74 72 61 6E 73
-       63 72 69 63 61 6F
-       20 64 65 20 75 6D
-       61 20 6C 69 6E 68
-       61 20 65 6D 20 62
-       72 61 6E 63 6F 2E
-       00
-				
+       20 74 72 61 64 75
+       63 61 6F 20 64 65
+       20 75 6D 61 20 6C
+       69 6E 68 61 20 65
+       6D 20 62 72 61 6E
+       63 6F 2E 00
+ 218A 45 72 72 6F 3A 20		MsgTamanhoInvalido 	db 	"Erro: Nao foi possivel fazer a traducao de uma linha com mais de 10 caracteres.", 0
+       4E 61 6F 20 66 6F
+       69 20 70 6F 73 73
+       69 76 65 6C 20 66
+       61 7A 65 72 20 61
+       20 74 72 61 64 75
+       63 61 6F 20 64 65
+       20 75 6D 61 20 6C
+       69 6E 68 61 20 63
+       6F 6D 20 6D 61 69
+       73 20 64 65 20 31
+       30 20 63 61 72 61
+       63 74 65 72 65 73
+       2E 00
+
  0000				.code
 				.startup
 					; Abro o meu arquivo de entrada, se ele não existir, eu exibo uma mensagem de erro e encerro o programa
@@ -162,7 +175,7 @@ main.asm						     Page 1 - 1
  001E  89 1E 0049 R			mov		FileHandleSrc,bx
  0022  73 0C				jnc		criarArquivoSaida ; Se não der nenhum problema, vou para a proxima etapa
  0024  8D 1E 1FA4 R			lea		bx, MsgErroOpenFile
- 0028  E8 03D8				call	printf_s
+ 0028  E8 03F1				call	printf_s
 					.exit	1
  0030				criarArquivoSaida:
 					; Criando o arquivo de destino, que será o arquivo de saída, caso ele já exista, ele será sobrescrito. Se eu não conseguir
@@ -174,7 +187,7 @@ main.asm						     Page 1 - 1
  003D  8B 1E 0049 R			mov		bx,FileHandleSrc
  0041  E8 010B				call	fclose
  0044  8D 1E 1FDA R			lea		bx, MsgErroCreateFile
- 0048  E8 03B8				call	printf_s
+ 0048  E8 03D1				call	printf_s
 					.exit	1
  0050				lerArquivoDeEntrada:
 					; Leio o arquivo de entrada, se eu não conseguir ler o arquivo de entrada, eu fecho os arquivos e exibo uma mensagem de erro
@@ -182,7 +195,7 @@ main.asm						     Page 1 - 1
  0054  E8 00FD				call	getChar
  0057  73 1A				jnc		leituraCorretaArquivoEntrada
  0059  8D 1E 200F R			lea		bx, MsgErroReadFile
- 005D  E8 03A3				call	printf_s
+ 005D  E8 03BC				call	printf_s
  0060  8B 1E 0049 R			mov		bx,FileHandleSrc
  0064  E8 00E8				call	fclose
  0067  8B 1E 004B R			mov		bx,FileHandleDst
@@ -196,47 +209,47 @@ main.asm						     Page 1 - 1
  007A				terminouLerArquivoEntrada:
 					; Criando um novo buffer a partir dos dados do arquivo de entrada pois eu só quero o conteudo entre o START e o STOP
  007A  8D 1E 000D R			lea 	bx, NomeArquivoEntrada
- 007E  E8 0382				call 	printf_s
+ 007E  E8 039B				call 	printf_s
  0081  8D 1E 003A R			lea 	bx, FileNameSrc
- 0085  E8 037B				call 	printf_s
+ 0085  E8 0394				call 	printf_s
  0088  8D 1E 1F95 R			lea 	bx, MsgNewLine	
- 008C  E8 0374				call 	printf_s
+ 008C  E8 038D				call 	printf_s
  008F  E8 00D9				call    criaNovoBuffer
-				
+
  0092  8D 36 0FED R			lea 	si, OutputBuffer
  0096  8D 1E 081D R			lea 	bx, NewBuffer
-				
+
  009A				loop_transformacoes:
 					; Loop responsável por transformar cada caractere do buffer em um barcode
  009A  E8 0171				call    transformaEmBarcode
-				
+
 					; Adiciona um CR e um LF no final de cada barcode
  009D  C7 04 000D			mov 	[si], 13
  00A1  46				inc 	si
  00A2  C7 04 000A			mov 	[si], 10
  00A6  46				inc 	si
-				
+
  00A7  4B				dec 	bx
  00A8  80 3F 0D				cmp 	byte ptr [bx], 13
  00AB  74 03				je 		incrementa_bx
-				
+
  00AD  43				inc 	bx
  00AE  EB 05				jmp 	checagem_fim_arquivo
-				
+
  00B0				incrementa_bx:	
  00B0  83 C3 02				add bx, 2
  00B3  EB 00				jmp checagem_fim_arquivo
-				
+
  00B5				checagem_fim_arquivo:
 					; Verifica se já chegamos no final do buffer de conteudo entre START e STOP
  00B5  80 3F 00				cmp 	byte ptr [bx], 0
  00B8  75 E0				jne 	loop_transformacoes
-				
+
 					; Escreve o conteudo do buffer de barcode no arquivo de destino
  00BA  8D 36 0FED R			lea 	si, OutputBuffer
  00BE  8B 1E 004B R			mov 	bx, FileHandleDst
  00C2  B9 0000				mov 	cx, 0
-				
+
  00C5				loop_escreve_START_arquivo_saida:
  00C5  56				push 	si
  00C6  8D 36 0000 R			lea 	si, PalavraStart
@@ -246,33 +259,33 @@ main.asm						     Page 1 - 1
  00CC  80 FA 00				cmp 	byte ptr dl, 0
  00CF  74 08				je      escreve_cr_lf
  00D1  53				push 	bx
- 00D2  E8 031E				call 	setChar
+ 00D2  E8 0337				call 	setChar
  00D5  5B				pop 	bx
  00D6  46				inc 	si
  00D7  EB F1				jmp 	loop_escreve_start
-				
+
  00D9				escreve_cr_lf:
  00D9  B2 0D				mov 	dl, 13
  00DB  53				push 	bx
- 00DC  E8 0314				call 	setChar
+ 00DC  E8 032D				call 	setChar
  00DF  5B				pop bx
-				
+
  00E0  B2 0A				mov 	dl, 10
  00E2  53				push 	bx
- 00E3  E8 030D				call 	setChar
+ 00E3  E8 0326				call 	setChar
  00E6  5B				pop     bx
  00E7  5E				pop 	si
  00E8  EB 00				jmp loop_escrever_output
-				
-				
+
+
  00EA				loop_escrever_output:
  00EA  8A 14				mov 	dl, [si]
  00EC  80 FA 00				cmp 	byte ptr dl, 0
  00EF  74 08				je 		loop_escrever_STOP
-				
+
 					; Coloca os valores no arquivo de destino
  00F1  53				push 	bx
- 00F2  E8 02FE				call 	setChar
+ 00F2  E8 0317				call 	setChar
  00F5  5B				pop 	bx
  00F6				final_loop_escrever_output:
  00F6  46				inc 	si
@@ -287,30 +300,30 @@ main.asm						     Page 1 - 1
  0100  80 FA 00				cmp 	byte ptr dl, 0
  0103  74 08				je      loop_escrever_output_fim
  0105  53				push 	bx
- 0106  E8 02EA				call 	setChar
+ 0106  E8 0303				call 	setChar
  0109  5B				pop 	bx
  010A  46				inc 	si
  010B  EB F1				jmp 	loop_escreve_stop
-				
+
  010D				loop_escrever_output_fim:
 					; Printa o conteudo do arquivo de saida ( Sem o START e sem o STOP ) no terminal
  010D  8D 1E 001F R			lea 	bx, NomeArquivoSaida
- 0111  E8 02EF				call 	printf_s
+ 0111  E8 0308				call 	printf_s
  0114  8D 1E 0041 R			lea 	bx, FileNameDst
- 0118  E8 02E8				call 	printf_s
+ 0118  E8 0301				call 	printf_s
  011B  8D 1E 1F95 R			lea 	bx, MsgNewLine
- 011F  E8 02E1				call 	printf_s
+ 011F  E8 02FA				call 	printf_s
  0122  8D 1E 0FED R			lea 	bx, OutputBuffer
- 0126  E8 02DA				call 	printf_s
-				
+ 0126  E8 02F3				call 	printf_s
+
 					; Fecha os arquivos após terminar de escrever tudo no arquivo de saída.
  0129  8B 1E 0049 R			mov		bx,FileHandleSrc	; Fecha arquivo origem
  012D  E8 001F				call	fclose
  0130  8B 1E 004B R			mov		bx,FileHandleDst	; Fecha arquivo destino
  0134  E8 0018				call	fclose
 					.exit	0
-				
-				
+
+
 				;--------------------------------------------------------------------
 				;Função	Abre o arquivo cujo nome está no string apontado por DX
 				;		boolean fopen(char *FileName -> DX)
@@ -325,7 +338,7 @@ main.asm						     Page 1 - 1
  0142  8B D8				mov		bx,ax
  0144  C3				ret
  0145				fopen	endp
-				
+
 				;--------------------------------------------------------------------
 				;Função Cria o arquivo cujo nome está no string apontado por DX
 				;		boolean fcreate(char *FileName -> DX)
@@ -339,7 +352,7 @@ main.asm						     Page 1 - 1
  014C  8B D8				mov		bx,ax
  014E  C3				ret
  014F				fcreate	endp
-				
+
 				;--------------------------------------------------------------------
 				;Entra:	BX -> file handle
 				;Sai:	CF -> "0" se OK
@@ -349,7 +362,7 @@ main.asm						     Page 1 - 1
  0151  CD 21				int		21h
  0153  C3				ret
  0154				fclose	endp
-				
+
 				;--------------------------------------------------------------------
 				;Função	Le um caractere do arquivo identificado pelo HANLDE BX
 				;		getChar(handle->BX)
@@ -369,7 +382,7 @@ main.asm						     Page 1 - 1
  0166  FF 06 000B R		    inc     ContadorBuffer         ; Increment the counter for the next read
  016A  C3			    ret                            ; Return to the caller
  016B				getChar endp
-				
+
 				;--------------------------------------------------------------------
 				;Função que cria um novo buffer com o conteudo do arquivo que interessa
 				;		
@@ -378,33 +391,33 @@ main.asm						     Page 1 - 1
 				;--------------------------------------------------------------------
  016B				criaNovoBuffer    proc near
  016B  8D 1E 004D R			lea 	bx, FileBuffer
-				
+
  016F				criaNovoBuffer_loop:
  016F  8A 17				mov 	dl, [bx]	; Carrega o primeiro caractere do buffer
 					
  0171  80 FA 00				cmp 	dl, 0		; Verifica se o buffer está vazio
  0174  74 77				je 		criaNovoBuffer_sem_start	; Se estiver, retorna
-				
+
  0176  80 FA 53				cmp     byte ptr dl, 'S'             ; Verifica se o caractere é 'S'
  0179  75 6F				jne     criaNovoBuffer_end    ; Se não for, sai do loop
-				
+
  017B  8A 57 01				mov 	dl, [bx + 1]
-				
+
  017E  80 FA 54				cmp     byte ptr dl, 'T'  ; Verifica se o próximo caractere é 'T'
  0181  75 67				jne     criaNovoBuffer_end    ; Se não for, sai do loop
-				
+
  0183  8A 57 02				mov 	dl, [bx + 2]
-				
+
  0186  80 FA 41				cmp     byte ptr dl, 'A'; Verifica se o próximo caractere é 'A'
  0189  75 5F				jne     criaNovoBuffer_end    ; Se não for, sai do loop
-				
+
  018B  8A 57 03				mov 	dl, [bx + 3]
-				
+
  018E  80 FA 52				cmp     byte ptr dl, 'R'; Verifica se o próximo caractere é 'R'
  0191  75 57				jne     criaNovoBuffer_end    ; Se não for, sai do loop
-				
+
  0193  8A 57 04				mov 	dl, [bx + 4]
-				
+
  0196  80 FA 54				cmp     byte ptr dl, 'T'; Verifica se o próximo caractere é 'T'
  0199  75 4F				jne     criaNovoBuffer_end    ; Se não for, sai do loop
  019B  83 C3 04				add     bx, 4
@@ -414,12 +427,12 @@ main.asm						     Page 1 - 1
  01A6  74 0B				je 		criaNovoBuffer_loop2
  01A8  80 7F 01 0D			cmp 	byte ptr [bx + 1], 13
  01AC  74 02				je 		incrementa_bx_start_2
-				
+
  01AE  EB 03				jmp 	criaNovoBuffer_loop2 
-				
+
  01B0				incrementa_bx_start_2:
  01B0  83 C3 01				add 	bx, 1
-				
+
  01B3				criaNovoBuffer_loop2:
  01B3  43				inc 	bx
  01B4  8A 17				mov 	dl, [bx]
@@ -429,14 +442,14 @@ main.asm						     Page 1 - 1
  01B9  8A 17				mov 	dl, [bx]
  01BB  80 FA 00				cmp     byte ptr dl, 0 
  01BE  74 43				je		criaNovoBuffer_sem_stop
-				
+
  01C0  88 14				mov 	byte ptr [si], dl
  01C2  46				inc 	si
-				
+
  01C3  80 FA 53				cmp 	byte ptr dl, 'S' ; Verifica se o próximo caractere é 'S' de 'STOP'
  01C6  75 EE				jne		criaNovoBuffer_insere
  01C8  4E				dec 	si 
-				
+
  01C9  8A 57 01				mov 	dl, [bx + 1]
  01CC  80 FA 54				cmp 	byte ptr dl, 'T' ; Verifica se o próximo caractere é 'T' de 'STOP'
  01CF  75 E5				jne		criaNovoBuffer_insere
@@ -447,7 +460,7 @@ main.asm						     Page 1 - 1
  01DC  80 FA 50				cmp 	byte ptr dl, 'P' ; Verifica se o próximo caractere é 'P' de 'STOP'
  01DF  75 D5				jne		criaNovoBuffer_insere
  01E1  83 C3 04				add 	bx, 4
-				
+
  01E4  C7 04 0000			mov     [si], 0
 					
  01E8  EB 11				jmp     criaNovoBuffer_print
@@ -455,26 +468,26 @@ main.asm						     Page 1 - 1
  01EA				criaNovoBuffer_end:
  01EA  43				inc 	bx
  01EB  EB 82				jmp 	criaNovoBuffer_loop
-				
+
  01ED				criaNovoBuffer_sem_start:
  01ED  83 F9 00				cmp 	cx, 0
  01F0  8D 1E 2045 R			lea 	bx, MsgErroSemStart
- 01F4  E8 020C				call 	printf_s
+ 01F4  E8 0225				call 	printf_s
 					.exit
-				
+
  01FB				criaNovoBuffer_print:
  01FB  8D 1E 081D R			lea 	bx, NewBuffer
-				
- 01FF  E8 0201				call 	printf_s
+
+ 01FF  E8 021A				call 	printf_s
  0202  C3				ret
-				
+
  0203				criaNovoBuffer_sem_stop:
  0203  8D 1E 207E R			lea 	bx, MsgErroSemStop
- 0207  E8 01F9				call 	printf_s
+ 0207  E8 0212				call 	printf_s
 					.exit
-				
+
  020E				criaNovoBuffer    endp
-				
+
 				;--------------------------------------------------------------------
 				;Função que traduz cada caracter do novo buffer em um barcode 
 				;		
@@ -484,100 +497,100 @@ main.asm						     Page 1 - 1
  020E				transformaEmBarcode proc near
  020E  B9 000B				mov     cx, 11
  0211  E8 00B3				call    transforma_em_barcode_exec
-				
+
  0214  8C DA				mov 	dx, ds
  0216  8E C2				mov 	es, dx
  0218  BF 0000				mov 	di, 0
  021B  8D 3E 17BF R			lea 	di, ChecksumBuffer
  021F  33 C0			    xor     ax, ax                ; Zera AX para evitar resíduos
-				
+
  0221  C7 04 0030			mov 	[si], '0'
  0225  46				inc 	si
-				
+
  0226				transformaEmBarcode_loop:
  0226  8A 17				mov     dl, [bx]
  0228  88 15				mov 	[di], dl
  022A  43				inc 	bx
  022B  47				inc 	di
-				
+
  022C  80 FA 00				cmp     byte ptr dl, 0    ; Verifica se o buffer está vazio
  022F  75 03 E9 00D2			je      transformaEmBarcode_fim_traducao    ; Se estiver, retorna
-				
+
  0234  80 FA 0D				cmp 	byte ptr dl, 13
  0237  75 03 E9 00CA			je 		transformaEmBarcode_fim_traducao
-				
+
  023C  80 FA 0A				cmp 	byte ptr dl, 10
  023F  75 03 E9 00C2			je 		transformaEmBarcode_fim_traducao
-				
+
  0244  B9 0000				mov 	cx, 0
  0247  80 FA 30				cmp     byte ptr dl, '0'    ; Verifica se o caractere é '0'
  024A  74 75				je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
-				
+
  024C  B9 0001				mov 	cx, 1
  024F  80 FA 31				cmp     byte ptr dl, '1'    ; Verifica se o caractere é '1'
  0252  74 6D				je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
-				
+
  0254  B9 0002				mov 	cx, 2
  0257  80 FA 32				cmp     byte ptr dl, '2'    ; Verifica se o caractere é '2'
  025A  74 65				je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
-				
+
  025C  B9 0003				mov 	cx, 3
  025F  80 FA 33				cmp     byte ptr dl, '3'    ; Verifica se o caractere é '3'
  0262  74 5D				je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
-				
+
  0264  B9 0004				mov 	cx, 4
  0267  80 FA 34				cmp     byte ptr dl, '4'    ; Verifica se o caractere é '4'
  026A  74 55				je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
-				
+
  026C  B9 0005				mov 	cx, 5
  026F  80 FA 35				cmp     byte ptr dl, '5'    ; Verifica se o caractere é '5'
  0272  74 4D				je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
-				
+
  0274  B9 0006				mov 	cx, 6
  0277  80 FA 36				cmp     byte ptr dl, '6'    ; Verifica se o caractere é '6'
  027A  74 45				je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
-				
+
  027C  B9 0007				mov 	cx, 7
  027F  80 FA 37				cmp     byte ptr dl, '7'    ; Verifica se o caractere é '7'
  0282  74 3D				je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
-				
+
  0284  B9 0008				mov 	cx, 8
  0287  80 FA 38				cmp     byte ptr dl, '8'    ; Verifica se o caractere é '8'
  028A  74 35				je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
-				
+
  028C  B9 0009				mov 	cx, 9
  028F  80 FA 39				cmp     byte ptr dl, '9'    ; Verifica se o caractere é '9'
  0292  74 2D				je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
-				
+
  0294  B9 000A				mov 	cx, 10
  0297  80 FA 2D				cmp     byte ptr dl, '-'    ; Verifica se o caractere é '-'
  029A  74 25				je      transformaEmBarcode_codigo    ; Se for, pula para a função que transforma em barcode
-				
+
  029C  EB 00				jmp     transformaEmBarcode_erro_caractere_invalido
-				
+
  029E				transformaEmBarcode_erro_caractere_invalido:
  029E				loop_volta_inicio_linha:
-				
+
  029E  83 EE 01				sub 	si, 1
  02A1  8A 14				mov 	dl, [si]
-				
+
  02A3  80 FA 00			    cmp 	dl, 0
- 02A6  75 03 E9 00FB		    je  	erro_caracter_invalido
-				
+ 02A6  75 03 E9 011E		    je  	erro_caracter_invalido
+
  02AB  80 FA 0A				cmp 	dl, 10
- 02AE  75 03 E9 00F3			je 		erro_caracter_invalido
-				
+ 02AE  75 03 E9 0116			je 		erro_caracter_invalido
+
  02B3  80 FA 0D				cmp 	dl, 13
- 02B6  75 03 E9 00EB			je 		erro_caracter_invalido
-				
+ 02B6  75 03 E9 010E			je 		erro_caracter_invalido
+
  02BB  C7 04 0000			mov 	[si], 0
-				
+
  02BF  EB DD				jmp 	loop_volta_inicio_linha
-				
+
  02C1				transformaEmBarcode_codigo:
  02C1  E8 0003				call 	transforma_em_barcode_exec
  02C4  E9 FF5F				jmp 	transformaEmBarcode_loop
-				
+
  02C7				transforma_em_barcode_exec:
  02C7  53				push 	bx
  02C8  8D 1E 1F98 R			lea 	bx, BarCodeTable
@@ -588,20 +601,20 @@ main.asm						     Page 1 - 1
  02D1  D0 E2				shl		dl, 1
  02D3  72 02				jc 		loop_coloca_valores
  02D5  EB FA				jmp 	loop_acha_primeiro
-				
+
  02D7				loop_coloca_valores:
  02D7  B8 0030				mov  	ax, 30h
  02DA  83 D0 00				adc  	ax, 0
-				
+
  02DD  89 04				mov	 	[si], ax
  02DF  46				inc 	si
-				
+
  02E0  80 FA 00				cmp 	dl, 0
  02E3  74 04				je  	loop_coloca_valores_acaba
-				
+
  02E5  D0 E2				shl 	dl, 1
  02E7  EB EE				jmp 	loop_coloca_valores
-				
+
  02E9				loop_coloca_valores_acaba:
 					
  02E9  83 F9 0A				cmp 	cx, 10
@@ -609,10 +622,10 @@ main.asm						     Page 1 - 1
  02EE  53				push 	bx
  02EF  52				push 	dx
  02F0  8A 17				mov 	dl, [bx]
-				
+
  02F2  80 3E 1F94 R 00			cmp 	ColocaSeparador, 0
  02F7  74 0A				je  	pula_coloca_zero
-				
+
  02F9  80 FA 00				cmp     byte ptr dl, 0    ; Verifica se o buffer está vazio
  02FC  74 05				je      pula_coloca_zero    ; Se estiver, retorna
 					
@@ -624,21 +637,21 @@ main.asm						     Page 1 - 1
 					
  0305				loop_coloca_valores_acaba_final:
  0305  C3				ret
-				
+
  0306				transformaEmBarcode_fim_traducao: 
  0306  83 F9 0B			    cmp 	cx, 11
- 0309  75 03 E9 0089			je      erro_linha_vazia_fim	
+ 0309  75 03 E9 00AC			je      erro_linha_vazia_fim	
  030E  C6 05 00			    mov     byte ptr [di], 0      ; Adiciona terminador null no final do ChecksumBuffer
  0311  51			    push    cx                    ; Salva CX
  0312  53			    push    bx
  0313  57			    push    di
  0314  56			    push    si
  0315  50			    push    ax
-				
+
 				    ; Calcula o comprimento da palavra
  0316  B1 00			    mov     cl, 0                 ; Zera CL (contador de caracteres)
  0318  8D 3E 17BF R		    lea     di, ChecksumBuffer    ; Ponteiro para o início do buffer
-				
+
  031C				loop_conta_palavras_checksum:
  031C  80 3D 0A			    cmp     byte ptr [di], 10      ; Verifica o final da palavra
  031F  74 0A			    je      loop_conta_palavras_end
@@ -647,223 +660,281 @@ main.asm						     Page 1 - 1
  0326  47			    inc     di                    ; Avança para o próximo caractere
  0327  FE C1			    inc     cl                    ; Incrementa o comprimento
  0329  EB F1			    jmp     loop_conta_palavras_checksum
-				
+
  032B				loop_conta_palavras_end:
  032B  88 0E 1F8F R		    mov     Pesochecksum, cl      ; Define o peso inicial como o comprimento da palavra
  032F  80 3E 1F8F R 00		    cmp     Pesochecksum, 0
- 0334  74 5C			    jz      erro_linha_vazia
-				
- 0336  8D 36 17BF R		    lea     si, ChecksumBuffer    ; Ponteiro para o início do buffer
- 033A  80 3C 0D				cmp 	byte ptr [si], 13
- 033D  74 02				je 		incrementa_si
- 033F  EB 01				jmp 	zerar_checksum
- 0341				incrementa_si:
- 0341  46				inc si
-				
- 0342				zerar_checksum:
- 0342  C7 06 1F90 R 0000	    mov     ChecksumTotal, 0      ; Zera o ChecksumTotal
- 0348				loop_calcula_checksum:
- 0348  8A 04			    mov     al, [si]              ; Carrega o próximo byte do ChecksumBuffer em AL
- 034A  3C 00			    cmp     al, 0                 ; Verifica se chegou ao final do buffer
- 034C  74 28			    je      checksum_done
-				
+ 0334  74 7F			    jz      erro_linha_vazia
+
+ 0336  80 3E 1F8F R 0A			cmp 	Pesochecksum, 10
+ 033B  77 5C				ja 		erro_tamanho_invalido
+
+ 033D  8D 36 17BF R		    lea     si, ChecksumBuffer    ; Ponteiro para o início do buffer
+ 0341  80 3C 0D				cmp 	byte ptr [si], 13
+ 0344  74 02				je 		incrementa_si
+ 0346  EB 01				jmp 	zerar_checksum
+ 0348				incrementa_si:
+ 0348  46				inc si
+
+ 0349				zerar_checksum:
+ 0349  C7 06 1F90 R 0000	    mov     ChecksumTotal, 0      ; Zera o ChecksumTotal
+ 034F				loop_calcula_checksum:
+ 034F  8A 04			    mov     al, [si]              ; Carrega o próximo byte do ChecksumBuffer em AL
+ 0351  3C 00			    cmp     al, 0                 ; Verifica se chegou ao final do buffer
+ 0353  74 28			    je      checksum_done
+
 				    ; Ignora caracteres indesejados (CR e LF)
- 034E  3C 0D			    cmp     al, 0Dh               ; CR
- 0350  74 18			    je      ignora_caractere
- 0352  3C 0A			    cmp     al, 0Ah               ; LF
- 0354  74 14			    je      ignora_caractere
-				
+ 0355  3C 0D			    cmp     al, 0Dh               ; CR
+ 0357  74 18			    je      ignora_caractere
+ 0359  3C 0A			    cmp     al, 0Ah               ; LF
+ 035B  74 14			    je      ignora_caractere
+
 				    ; Converte o caractere numérico de ASCII para número
- 0356  3C 2D				cmp 	al, '-'
- 0358  74 04				je		coloca_valor_correto_travessao
- 035A  2C 30			    sub     al, '0'               ; Converte de ASCII para número
- 035C  EB 02				jmp 	nao_eh_travessao
-				
- 035E				coloca_valor_correto_travessao:
- 035E  B0 0A				mov 	al, 10
-				
- 0360				nao_eh_travessao:
- 0360  B4 00			    mov     ah, 0                 ; Garante que AH está zerado
- 0362  F6 26 1F8F R		    mul     Pesochecksum          ; Multiplica pelo peso
-				
+ 035D  3C 2D				cmp 	al, '-'
+ 035F  74 04				je		coloca_valor_correto_travessao
+ 0361  2C 30			    sub     al, '0'               ; Converte de ASCII para número
+ 0363  EB 02				jmp 	nao_eh_travessao
+
+ 0365				coloca_valor_correto_travessao:
+ 0365  B0 0A				mov 	al, 10
+
+ 0367				nao_eh_travessao:
+ 0367  B4 00			    mov     ah, 0                 ; Garante que AH está zerado
+ 0369  F6 26 1F8F R		    mul     Pesochecksum          ; Multiplica pelo peso
+
 				    ; Soma ao total do checksum
- 0366  01 06 1F90 R		    add     ChecksumTotal, ax
-				
- 036A				ignora_caractere:
+ 036D  01 06 1F90 R		    add     ChecksumTotal, ax
+
+ 0371				ignora_caractere:
 				    ; Ignora o caractere e avança no buffer
- 036A  46			    inc     si                    ; Avança para o próximo caractere
- 036B  FE 0E 1F8F R		    dec     Pesochecksum          ; Reduz o peso
- 036F  80 3E 1F8F R 00		    cmp     Pesochecksum, 0
- 0374  75 D2			    jnz     loop_calcula_checksum
-				
- 0376				checksum_done:
+ 0371  46			    inc     si                    ; Avança para o próximo caractere
+ 0372  FE 0E 1F8F R		    dec     Pesochecksum          ; Reduz o peso
+ 0376  80 3E 1F8F R 00		    cmp     Pesochecksum, 0
+ 037B  75 D2			    jnz     loop_calcula_checksum
+
+ 037D				checksum_done:
 				    ; Salva registradores na pilha
- 0376  50			    push    ax
- 0377  53			    push    bx
- 0378  51			    push    cx
- 0379  52			    push    dx
-				
+ 037D  50			    push    ax
+ 037E  53			    push    bx
+ 037F  51			    push    cx
+ 0380  52			    push    dx
+
 				    ; Calcula o resto da divisão do ChecksumTotal por 11
- 037A  A1 1F90 R		    mov     ax, ChecksumTotal      ; Carrega o ChecksumTotal em AX
- 037D  B3 0B			    mov     bl, 11                 ; Define o divisor como 11
- 037F  F6 F3			    div     bl                     ; AL = Quociente, AH = Resto
-				
+ 0381  A1 1F90 R		    mov     ax, ChecksumTotal      ; Carrega o ChecksumTotal em AX
+ 0384  B3 0B			    mov     bl, 11                 ; Define o divisor como 11
+ 0386  F6 F3			    div     bl                     ; AL = Quociente, AH = Resto
+
 				    ; AH contém o resto da divisão
- 0381  8A CC			    mov     cl, ah                 ; Move o resto para CL
- 0383  32 E4			    xor     ah, ah                 ; Limpa AH para evitar resíduos
-				
-				
+ 0388  8A CC			    mov     cl, ah                 ; Move o resto para CL
+ 038A  32 E4			    xor     ah, ah                 ; Limpa AH para evitar resíduos
+
+
 				    ; Imprime o valor do resto (divisão do checksum por 11)
- 0385  50			    push    ax                     ; Salva AX antes da exibição
- 0386  8B C1			    mov     ax, cx                 ; Move o valor do resto para AX
- 0388  A3 1F92 R			mov 	Checksum, ax
- 038B  58			    pop     ax                     ; Restaura AX
-				
+ 038C  50			    push    ax                     ; Salva AX antes da exibição
+ 038D  8B C1			    mov     ax, cx                 ; Move o valor do resto para AX
+ 038F  A3 1F92 R			mov 	Checksum, ax
+ 0392  58			    pop     ax                     ; Restaura AX
+
 				    ; Restaura registradores
- 038C  5A			    pop     dx
- 038D  59			    pop     cx
- 038E  5B			    pop     bx
- 038F  58			    pop     ax
-				
-				    ; Continua para a próxima etapa
- 0390  EB 33			    jmp     termina_calculo_checksum
-				
-				
- 0392				erro_linha_vazia:
-				
- 0392  58				pop     ax
- 0393  5E			    pop     si
- 0394  5F			    pop     di
+ 0393  5A			    pop     dx
+ 0394  59			    pop     cx
  0395  5B			    pop     bx
- 0396  59			    pop     cx
- 0397				erro_linha_vazia_fim:
- 0397  83 EE 08				sub 	si, 8 ; Apagar o SS inicial que sempre é colocado, independentemente se checksum é 0 ou não.
-				
- 039A  57				push 	di
- 039B  8D 3E 214A R			lea 	di, MsgLinhaEmBranco
- 039F  E8 0045				call 	coloca_erro_no_buffer
- 03A2  5F				pop 	di
-				
- 03A3  4E				dec 	si
- 03A4  EB 40				jmp 	return_transformacao
-				
- 03A6				erro_caracter_invalido:
- 03A6  46				inc 	si
- 03A7  57				push 	di
- 03A8  8D 3E 2102 R			lea 	di, MsgErrorCaracterInvalido
- 03AC  E8 0038				call 	coloca_erro_no_buffer
- 03AF  5F				pop 	di
-				
- 03B0  4E				dec 	si
- 03B1				loop_avanca_ate_acabar_palavra_incorreta:
-				
- 03B1  8A 17				mov 	dl, [bx]
- 03B3  43				inc 	bx
-				
- 03B4  80 FA 0A				cmp 	byte ptr dl, 10
- 03B7  75 F8				jne 	loop_avanca_ate_acabar_palavra_incorreta
-				
- 03B9  8A 17				mov 	dl, [bx]
- 03BB  80 FA 0D				cmp 	byte ptr dl, 13
- 03BE  74 02				je 	incrementa_bx_acaba_palavra
-				
- 03C0  EB 24				jmp 	return_transformacao
- 03C2				incrementa_bx_acaba_palavra:
- 03C2  43				inc 	bx
-				
- 03C3  EB 21				jmp 	return_transformacao
-				
- 03C5				termina_calculo_checksum:
+ 0396  58			    pop     ax
+
+				    ; Continua para a próxima etapa
+ 0397  EB 45			    jmp     termina_calculo_checksum
+
+ 0399				erro_tamanho_invalido:
+ 0399  58				pop 	ax
+ 039A  5E				pop		si
+ 039B  5F				pop 	di 
+ 039C  5B				pop 	bx
+ 039D  59				pop 	cx
+
+ 039E				erro_tamanho_invalido_loop:
+
+ 039E  C7 04 0000			mov 	[si], 0
+ 03A2  4E				dec 	si
+
+ 03A3  80 3C 0A				cmp 	byte ptr [si], 10
+ 03A6  75 F6				jne 	erro_tamanho_invalido_loop
+
+ 03A8  46				inc 	si
+ 03A9  57				push 	di
+ 03AA  8D 3E 218A R			lea 	di, MsgTamanhoInvalido
+ 03AE  E8 004F				call 	coloca_erro_no_buffer
+ 03B1  5F				pop 	di
+
+ 03B2  4E				dec 	si
+ 03B3  EB 4A				jmp 	return_transformacao
+
+
+ 03B5				erro_linha_vazia:
+
+ 03B5  58				pop     ax
+ 03B6  5E			    pop     si
+ 03B7  5F			    pop     di
+ 03B8  5B			    pop     bx
+ 03B9  59			    pop     cx
+ 03BA				erro_linha_vazia_fim:
+ 03BA  83 EE 08				sub 	si, 8 ; Apagar o SS inicial que sempre é colocado, independentemente se checksum é 0 ou não.
+
+ 03BD  57				push 	di
+ 03BE  8D 3E 214A R			lea 	di, MsgLinhaEmBranco
+ 03C2  E8 003B				call 	coloca_erro_no_buffer
+ 03C5  5F				pop 	di
+
+ 03C6  4E				dec 	si
+ 03C7  EB 36				jmp 	return_transformacao
+
+ 03C9				erro_caracter_invalido:
+ 03C9  46				inc 	si
+ 03CA  57				push 	di
+ 03CB  8D 3E 2102 R			lea 	di, MsgErrorCaracterInvalido
+ 03CF  E8 002E				call 	coloca_erro_no_buffer
+ 03D2  5F				pop 	di
+
+ 03D3  4E				dec 	si
+ 03D4				loop_avanca_ate_acabar_palavra_incorreta:
+
+ 03D4  8A 17				mov 	dl, [bx]
+ 03D6  43				inc 	bx
+
+ 03D7  80 FA 0A				cmp 	byte ptr dl, 10
+ 03DA  75 F8				jne 	loop_avanca_ate_acabar_palavra_incorreta
+
+					;mov 	dl, [bx]
+					;cmp 	byte ptr dl, 13
+					;je 	incrementa_bx_acaba_palavra
+
+ 03DC  EB 21				jmp 	return_transformacao
+				;incrementa_bx_acaba_palavra:
+					;inc 	bx
+
+					;jmp 	return_transformacao
+
+ 03DE				termina_calculo_checksum:
 				    ; Restaura registradores salvos e retorna
- 03C5  58				pop     ax
- 03C6  5E			    pop     si
- 03C7  5F			    pop     di
- 03C8  5B			    pop     bx
- 03C9  59			    pop     cx
-				
- 03CA  C6 06 1F94 R 00			mov 	ColocaSeparador, 0
- 03CF  8B 0E 1F92 R			mov 	cx, Checksum
- 03D3  E8 FEF1				call 	transforma_em_barcode_exec
-				
- 03D6				coloca_SS_terminar:
- 03D6  C6 06 1F94 R 01			mov 	ColocaSeparador, 1
-				
- 03DB  C7 04 0030			mov 	[si], '0'
- 03DF  46				inc 	si
-				
- 03E0  B9 000B				mov     cx, 11
- 03E3  E8 FEE1				call    transforma_em_barcode_exec
-				
- 03E6				return_transformacao:
- 03E6  C3			    ret
-				
-				
- 03E7				transformaEmBarcode endp
-				
+ 03DE  58				pop     ax
+ 03DF  5E			    pop     si
+ 03E0  5F			    pop     di
+ 03E1  5B			    pop     bx
+ 03E2  59			    pop     cx
+
+ 03E3  C6 06 1F94 R 00			mov 	ColocaSeparador, 0
+ 03E8  8B 0E 1F92 R			mov 	cx, Checksum
+ 03EC  E8 FED8				call 	transforma_em_barcode_exec
+
+ 03EF				coloca_SS_terminar:
+ 03EF  C6 06 1F94 R 01			mov 	ColocaSeparador, 1
+
+ 03F4  C7 04 0030			mov 	[si], '0'
+ 03F8  46				inc 	si
+
+ 03F9  B9 000B				mov     cx, 11
+ 03FC  E8 FEC8				call    transforma_em_barcode_exec
+
+ 03FF				return_transformacao:
+ 03FF  C3			    ret
+
+
+ 0400				transformaEmBarcode endp
+
 				;--------------------------------------------------------------------
 				;Função: Coloca string de erro no buffer do arquivo
 				;Entra: (S) -> SI -> aponta para o local do buffer
 				;Sai:	(A) -> DI -> aponta para o inicio da string
 				;--------------------------------------------------------------------
- 03E7				coloca_erro_no_buffer 	proc near
- 03E7				loop_percorre_string:
- 03E7  8A 15				mov		dl, [di]
-				
- 03E9  88 14				mov 	[si], dl
-				
- 03EB  46				inc 	si
- 03EC  47				inc 	di
-				
- 03ED  80 FA 00				cmp 	dl, 0
- 03F0  75 F5				jne 	loop_percorre_string
-				
- 03F2  C3				ret
- 03F3				coloca_erro_no_buffer endp
-				
-				
+ 0400				coloca_erro_no_buffer 	proc near
+ 0400				loop_percorre_string:
+ 0400  8A 15				mov		dl, [di]
+
+ 0402  88 14				mov 	[si], dl
+
+ 0404  46				inc 	si
+ 0405  47				inc 	di
+
+ 0406  80 FA 00				cmp 	dl, 0
+ 0409  75 F5				jne 	loop_percorre_string
+
+ 040B  C3				ret
+ 040C				coloca_erro_no_buffer endp
+
+
 				;--------------------------------------------------------------------
 				;Entra: BX -> file handle
 				;       dl -> caractere
 				;Sai:   AX -> numero de caracteres escritos
 				;		CF -> "0" se escrita ok
 				;--------------------------------------------------------------------
- 03F3				setChar	proc	near
- 03F3  B4 40				mov		ah,40h
- 03F5  B9 0001				mov		cx,1
- 03F8  88 16 004D R			mov		FileBuffer,dl
- 03FC  8D 16 004D R			lea		dx,FileBuffer
- 0400  CD 21				int		21h
- 0402  C3				ret
- 0403				setChar	endp	
-				
-				
+ 040C				setChar	proc	near
+ 040C  B4 40				mov		ah,40h
+ 040E  B9 0001				mov		cx,1
+ 0411  88 16 004D R			mov		FileBuffer,dl
+ 0415  8D 16 004D R			lea		dx,FileBuffer
+ 0419  CD 21				int		21h
+ 041B  C3				ret
+ 041C				setChar	endp	
+
+
 				;--------------------------------------------------------------------
 				;Função Escrever um string na tela
 				;		printf_s(char *s -> BX)
 				;--------------------------------------------------------------------
- 0403				printf_s	proc	near
- 0403  8A 17				mov		dl,[bx]
- 0405  80 FA 00				cmp		dl,0
- 0408  74 09				je		ps_1
-				
- 040A  53				push	bx
- 040B  B4 02				mov		ah,2
- 040D  CD 21				int		21H
- 040F  5B				pop		bx
-				
- 0410  43				inc		bx		
- 0411  EB F0				jmp		printf_s
-				
- 0413				ps_1:
- 0413  C3				ret
- 0414				printf_s	endp
-				
-				
-				
+ 041C				printf_s	proc	near
+ 041C  8A 17				mov		dl,[bx]
+ 041E  80 FA 00				cmp		dl,0
+ 0421  74 09				je		ps_1
+
+ 0423  53				push	bx
+ 0424  B4 02				mov		ah,2
+ 0426  CD 21				int		21H
+ 0428  5B				pop		bx
+
+ 0429  43				inc		bx		
+ 042A  EB F0				jmp		printf_s
+
+ 042C				ps_1:
+ 042C  C3				ret
+ 042D				printf_s	endp
+
+
+
+				;--------------------------------------------------------------------
+				; Função para imprimir um número na tela
+				; Entrada: AX contém o número a ser impresso
+				;--------------------------------------------------------------------
+ 042D				print_number proc near
+ 042D  50			    push    ax                    ; Salva AX
+ 042E  52			    push    dx                    ; Salva DX
+ 042F  33 C9			    xor     cx, cx                ; Zera CX (contador de dígitos)
+
+				    ; Calcula os dígitos do número (armazenados na pilha)
+ 0431				print_number_loop:
+ 0431  33 D2			    xor     dx, dx                ; Zera DX
+ 0433  F7 36 17BD R		    div     word ptr Divisor10    ; Divide AX por 10 (quociente em AX, resto em DX)
+ 0437  52			    push    dx                    ; Armazena o dígito na pilha
+ 0438  41			    inc     cx                    ; Incrementa o contador de dígitos
+ 0439  85 C0			    test    ax, ax                ; Verifica se o quociente é 0
+ 043B  75 F4			    jnz     print_number_loop     ; Continua se ainda houver dígitos
+
+				    ; Imprime os dígitos na ordem correta
+ 043D				print_number_output:
+ 043D  5A			    pop     dx                    ; Recupera o próximo dígito
+ 043E  80 C2 30			    add     dl, '0'               ; Converte o dígito para ASCII
+ 0441  B4 02			    mov     ah, 2                 ; Função para imprimir caractere
+ 0443  CD 21			    int     21h                   ; Chama a interrupção do DOS
+ 0445  E2 F6			    loop    print_number_output   ; Continua até imprimir todos os dígitos
+
+ 0447  5A			    pop     dx                    ; Restaura DX
+ 0448  58			    pop     ax                    ; Restaura AX
+ 0449  C3			    ret
+ 044A				print_number endp
+
 				;--------------------------------------------------------------------
 						end
 				;--------------------------------------------------------------------
-Microsoft (R) Macro Assembler Version 6.11		    01/04/25 21:55:22
+Microsoft (R) Macro Assembler Version 6.11		    01/07/25 18:05:33
 main.asm						     Symbols 2 - 1
 
 
@@ -874,24 +945,25 @@ Segments and Groups:
                 N a m e                 Size     Length   Align   Combine Class
 
 DGROUP . . . . . . . . . . . . .	GROUP
-_DATA  . . . . . . . . . . . . .	16 Bit	 218D	  Word	  Public  'DATA'	
+_DATA  . . . . . . . . . . . . .	16 Bit	 21DA	  Word	  Public  'DATA'	
 STACK  . . . . . . . . . . . . .	16 Bit	 0400	  Para	  Stack	  'STACK'	 
-_TEXT  . . . . . . . . . . . . .	16 Bit	 0414	  Word	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	16 Bit	 044A	  Word	  Public  'CODE'	
 
 
 Procedures,  parameters and locals:
 
                 N a m e                 Type     Value    Attr
 
-coloca_erro_no_buffer  . . . . .	P Near	 03E7	  _TEXT	Length= 000C Private
+coloca_erro_no_buffer  . . . . .	P Near	 0400	  _TEXT	Length= 000C Private
 criaNovoBuffer . . . . . . . . .	P Near	 016B	  _TEXT	Length= 0291 Private
 fclose . . . . . . . . . . . . .	P Near	 014F	  _TEXT	Length= 0005 Private
 fcreate  . . . . . . . . . . . .	P Near	 0145	  _TEXT	Length= 000A Private
 fopen  . . . . . . . . . . . . .	P Near	 013C	  _TEXT	Length= 0009 Private
 getChar  . . . . . . . . . . . .	P Near	 0154	  _TEXT	Length= 0017 Private
-printf_s . . . . . . . . . . . .	P Near	 0403	  _TEXT	Length= 0011 Private
-setChar  . . . . . . . . . . . .	P Near	 03F3	  _TEXT	Length= 0010 Private
-transformaEmBarcode  . . . . . .	P Near	 020E	  _TEXT	Length= 01D9 Private
+print_number . . . . . . . . . .	P Near	 042D	  _TEXT	Length= 001D Private
+printf_s . . . . . . . . . . . .	P Near	 041C	  _TEXT	Length= 0011 Private
+setChar  . . . . . . . . . . . .	P Near	 040C	  _TEXT	Length= 0010 Private
+transformaEmBarcode  . . . . . .	P Near	 020E	  _TEXT	Length= 01F2 Private
 
 
 Symbols:
@@ -931,6 +1003,7 @@ MsgErroWriteFile . . . . . . . .	Byte	 20CD	  _DATA
 MsgErrorCaracterInvalido . . . .	Byte	 2102	  _DATA	
 MsgLinhaEmBranco . . . . . . . .	Byte	 214A	  _DATA	
 MsgNewLine . . . . . . . . . . .	Byte	 1F95	  _DATA	
+MsgTamanhoInvalido . . . . . . .	Byte	 218A	  _DATA	
 NewBuffer  . . . . . . . . . . .	Byte	 081D	  _DATA	
 NomeArquivoEntrada . . . . . . .	Byte	 000D	  _DATA	
 NomeArquivoSaida . . . . . . . .	Byte	 001F	  _DATA	
@@ -939,9 +1012,9 @@ PalavraStart . . . . . . . . . .	Byte	 0000	  _DATA
 PalavraStop  . . . . . . . . . .	Byte	 0006	  _DATA	
 Pesochecksum . . . . . . . . . .	Byte	 1F8F	  _DATA	
 checagem_fim_arquivo . . . . . .	L Near	 00B5	  _TEXT	
-checksum_done  . . . . . . . . .	L Near	 0376	  _TEXT	
-coloca_SS_terminar . . . . . . .	L Near	 03D6	  _TEXT	
-coloca_valor_correto_travessao .	L Near	 035E	  _TEXT	
+checksum_done  . . . . . . . . .	L Near	 037D	  _TEXT	
+coloca_SS_terminar . . . . . . .	L Near	 03EF	  _TEXT	
+coloca_valor_correto_travessao .	L Near	 0365	  _TEXT	
 criaNovoBuffer_end . . . . . . .	L Near	 01EA	  _TEXT	
 criaNovoBuffer_insere  . . . . .	L Near	 01B6	  _TEXT	
 criaNovoBuffer_loop2 . . . . . .	L Near	 01B3	  _TEXT	
@@ -950,21 +1023,22 @@ criaNovoBuffer_print . . . . . .	L Near	 01FB	  _TEXT
 criaNovoBuffer_sem_start . . . .	L Near	 01ED	  _TEXT	
 criaNovoBuffer_sem_stop  . . . .	L Near	 0203	  _TEXT	
 criarArquivoSaida  . . . . . . .	L Near	 0030	  _TEXT	
-erro_caracter_invalido . . . . .	L Near	 03A6	  _TEXT	
-erro_linha_vazia_fim . . . . . .	L Near	 0397	  _TEXT	
-erro_linha_vazia . . . . . . . .	L Near	 0392	  _TEXT	
+erro_caracter_invalido . . . . .	L Near	 03C9	  _TEXT	
+erro_linha_vazia_fim . . . . . .	L Near	 03BA	  _TEXT	
+erro_linha_vazia . . . . . . . .	L Near	 03B5	  _TEXT	
+erro_tamanho_invalido_loop . . .	L Near	 039E	  _TEXT	
+erro_tamanho_invalido  . . . . .	L Near	 0399	  _TEXT	
 escreve_cr_lf  . . . . . . . . .	L Near	 00D9	  _TEXT	
 final_loop_escrever_output . . .	L Near	 00F6	  _TEXT	
-ignora_caractere . . . . . . . .	L Near	 036A	  _TEXT	
-incrementa_bx_acaba_palavra  . .	L Near	 03C2	  _TEXT	
+ignora_caractere . . . . . . . .	L Near	 0371	  _TEXT	
 incrementa_bx_start_2  . . . . .	L Near	 01B0	  _TEXT	
 incrementa_bx  . . . . . . . . .	L Near	 00B0	  _TEXT	
-incrementa_si  . . . . . . . . .	L Near	 0341	  _TEXT	
+incrementa_si  . . . . . . . . .	L Near	 0348	  _TEXT	
 leituraCorretaArquivoEntrada . .	L Near	 0073	  _TEXT	
 lerArquivoDeEntrada  . . . . . .	L Near	 0050	  _TEXT	
 loop_acha_primeiro . . . . . . .	L Near	 02D1	  _TEXT	
-loop_avanca_ate_acabar_palavra_incorreta . L Near   03B1     _TEXT	
-loop_calcula_checksum  . . . . .	L Near	 0348	  _TEXT	
+loop_avanca_ate_acabar_palavra_incorreta . L Near   03D4     _TEXT	
+loop_calcula_checksum  . . . . .	L Near	 034F	  _TEXT	
 loop_coloca_valores_acaba_final 	L Near	 0305	  _TEXT	
 loop_coloca_valores_acaba  . . .	L Near	 02E9	  _TEXT	
 loop_coloca_valores  . . . . . .	L Near	 02D7	  _TEXT	
@@ -976,21 +1050,23 @@ loop_escreve_stop  . . . . . . .	L Near	 00FE	  _TEXT
 loop_escrever_STOP . . . . . . .	L Near	 00F9	  _TEXT	
 loop_escrever_output_fim . . . .	L Near	 010D	  _TEXT	
 loop_escrever_output . . . . . .	L Near	 00EA	  _TEXT	
-loop_percorre_string . . . . . .	L Near	 03E7	  _TEXT	
+loop_percorre_string . . . . . .	L Near	 0400	  _TEXT	
 loop_transformacoes  . . . . . .	L Near	 009A	  _TEXT	
 loop_volta_inicio_linha  . . . .	L Near	 029E	  _TEXT	
-nao_eh_travessao . . . . . . . .	L Near	 0360	  _TEXT	
-ps_1 . . . . . . . . . . . . . .	L Near	 0413	  _TEXT	
+nao_eh_travessao . . . . . . . .	L Near	 0367	  _TEXT	
+print_number_loop  . . . . . . .	L Near	 0431	  _TEXT	
+print_number_output  . . . . . .	L Near	 043D	  _TEXT	
+ps_1 . . . . . . . . . . . . . .	L Near	 042C	  _TEXT	
 pula_coloca_zero . . . . . . . .	L Near	 0303	  _TEXT	
-return_transformacao . . . . . .	L Near	 03E6	  _TEXT	
-termina_calculo_checksum . . . .	L Near	 03C5	  _TEXT	
+return_transformacao . . . . . .	L Near	 03FF	  _TEXT	
+termina_calculo_checksum . . . .	L Near	 03DE	  _TEXT	
 terminouLerArquivoEntrada  . . .	L Near	 007A	  _TEXT	
 transformaEmBarcode_codigo . . .	L Near	 02C1	  _TEXT	
 transformaEmBarcode_erro_caractere_invalido  L Near   029E     _TEXT	
 transformaEmBarcode_fim_traducao .	L Near	 0306	  _TEXT	
 transformaEmBarcode_loop . . . .	L Near	 0226	  _TEXT	
 transforma_em_barcode_exec . . .	L Near	 02C7	  _TEXT	
-zerar_checksum . . . . . . . . .	L Near	 0342	  _TEXT	
+zerar_checksum . . . . . . . . .	L Near	 0349	  _TEXT	
 
 	   0 Warnings
 	   0 Errors
