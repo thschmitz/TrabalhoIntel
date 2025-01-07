@@ -56,7 +56,8 @@ MsgErroSemStop		db	"Erro: Nao foi encontrado a palavra 'STOP' apos a palavra 'ST
 MsgErroWriteFile	db	"Erro: Nao foi possivel fazer a escrita do arquivo.", CR, LF, 0
 ; Mensagens de erros que podem aparecer no arquivo de texto final
 MsgErrorCaracterInvalido db "Erro: Nao foi possivel fazer a traducao de um caracter que eh invalido.", 0
-MsgLinhaEmBranco	db 	"Erro: Nao foi possivel fazer a transcricao de uma linha em branco.", 0
+MsgLinhaEmBranco	db 	"Erro: Nao foi possivel fazer a traducao de uma linha em branco.", 0
+MsgTamanhoInvalido 	db 	"Erro: Nao foi possivel fazer a traducao de uma linha com mais de 10 caracteres.", 0
 
 .code
 .startup
@@ -557,6 +558,9 @@ loop_conta_palavras_end:
     cmp     Pesochecksum, 0
     jz      erro_linha_vazia
 
+	cmp 	Pesochecksum, 10
+	ja 		erro_tamanho_invalido
+
     lea     si, ChecksumBuffer    ; Ponteiro para o início do buffer
 	cmp 	byte ptr [si], 13
 	je 		incrementa_si
@@ -635,6 +639,30 @@ checksum_done:
     ; Continua para a próxima etapa
     jmp     termina_calculo_checksum
 
+erro_tamanho_invalido:
+	pop 	ax
+	pop		si
+	pop 	di 
+	pop 	bx
+	pop 	cx
+
+erro_tamanho_invalido_loop:
+
+	mov 	[si], 0
+	dec 	si
+
+	cmp 	byte ptr [si], 10
+	jne 	erro_tamanho_invalido_loop
+
+	inc 	si
+	push 	di
+	lea 	di, MsgTamanhoInvalido
+	call 	coloca_erro_no_buffer
+	pop 	di
+
+	dec 	si
+	jmp 	return_transformacao
+
 
 erro_linha_vazia:
 
@@ -670,15 +698,15 @@ loop_avanca_ate_acabar_palavra_incorreta:
 	cmp 	byte ptr dl, 10
 	jne 	loop_avanca_ate_acabar_palavra_incorreta
 
-	mov 	dl, [bx]
-	cmp 	byte ptr dl, 13
-	je 	incrementa_bx_acaba_palavra
+	;mov 	dl, [bx]
+	;cmp 	byte ptr dl, 13
+	;je 	incrementa_bx_acaba_palavra
 
 	jmp 	return_transformacao
-incrementa_bx_acaba_palavra:
-	inc 	bx
+;incrementa_bx_acaba_palavra:
+	;inc 	bx
 
-	jmp 	return_transformacao
+	;jmp 	return_transformacao
 
 termina_calculo_checksum:
     ; Restaura registradores salvos e retorna

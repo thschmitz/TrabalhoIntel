@@ -1,32 +1,32 @@
 [shared-]
-	pmark="C:\main.asm" 166 1
+	pmark="C:\main.asm" 116 1
 	version=3
 [debug-]
 	target="c:\main.exe"
 	synonym=;C:
-	genericbp='E "{,main.asm,C:\main.EXE} loop_transformacoes"
-	genericbp='E "{,main.asm,C:\main.EXE} .257"
-	memwin=vm1b 0x0643:0x0810 
+	genericbp='E "{,main.asm,C:\main.EXE} .561"
+	genericbp='E "{criaNovoBuffer,main.asm,C:\main.EXE} erro_tamanho_invalido"
+	memwin=vm1b 0x0649:0x112B 
 	memwin=vm2b 0x063E:0x100C 
 [cv]
 	wndstate=0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1
 	wndstate=1 67 5 0 1 0 1 0 0 0 0 0 0 0 -1
 	wndstate=2 34 4 33 1 0 1 0 0 0 0 0 0 0 -1
-	wndstate=3 67 18 0 1 0 1 0 0 0 165 160 0 0 -1
-	wndstate=4 67 18 0 1 0 1 0 0 0 60 55 0 0 -1
-	wndstate=5 67 18 0 1 0 1 0 0 0 159 159 0 0 -1
+	wndstate=3 67 18 0 1 0 1 0 0 0 115 110 0 0 -1
+	wndstate=4 67 18 0 1 1 1 0 0 0 63 58 0 0 -1
+	wndstate=5 67 18 0 1 0 1 0 11 0 340 325 0 0 -1
 	wndstate=6 67 18 0 1 0 1 0 0 0 316 316 0 0 -1
 	wndstate=7 13 23 67 1 0 1 0 0 0 0 0 0 0 -1
 	wndstate=8 67 4 0 16 0 0 0 0 0 0 0 0 0 -1
-	wndstate=9 80 5 0 19 1 1 0 0 0 8 6 0 0 -1
+	wndstate=9 80 5 0 19 0 1 0 1 0 7 5 0 0 -1
 	command=use auto
 	command=n10
 	screensize=25
 	command=oh+
 	command=ov+
 	command=oa+
-	command=vs2
 	command=vs1
+	command=vs2
 	command=oc+
 	command=of+
 	command=o3-
