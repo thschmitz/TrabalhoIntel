@@ -790,39 +790,6 @@ ps_1:
 	ret
 printf_s	endp
 
-
-
-;--------------------------------------------------------------------
-; Função para imprimir um número na tela
-; Entrada: AX contém o número a ser impresso
-;--------------------------------------------------------------------
-print_number proc near
-    push    ax                    ; Salva AX
-    push    dx                    ; Salva DX
-    xor     cx, cx                ; Zera CX (contador de dígitos)
-
-    ; Calcula os dígitos do número (armazenados na pilha)
-print_number_loop:
-    xor     dx, dx                ; Zera DX
-    div     word ptr Divisor10    ; Divide AX por 10 (quociente em AX, resto em DX)
-    push    dx                    ; Armazena o dígito na pilha
-    inc     cx                    ; Incrementa o contador de dígitos
-    test    ax, ax                ; Verifica se o quociente é 0
-    jnz     print_number_loop     ; Continua se ainda houver dígitos
-
-    ; Imprime os dígitos na ordem correta
-print_number_output:
-    pop     dx                    ; Recupera o próximo dígito
-    add     dl, '0'               ; Converte o dígito para ASCII
-    mov     ah, 2                 ; Função para imprimir caractere
-    int     21h                   ; Chama a interrupção do DOS
-    loop    print_number_output   ; Continua até imprimir todos os dígitos
-
-    pop     dx                    ; Restaura DX
-    pop     ax                    ; Restaura AX
-    ret
-print_number endp
-
 ;--------------------------------------------------------------------
 		end
 ;--------------------------------------------------------------------
